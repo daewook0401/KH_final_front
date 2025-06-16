@@ -7,34 +7,38 @@ import axios from 'axios';
  * @param {boolean} immediate - mount 시 바로 호출할지 여부
  */
 const useApi = (url, options = {}, immediate = true) => {
-  const [data, setData] = useState([]); // body.items
-  const [totalCount, setTotalCount] = useState(0); // body.totalCount
   const [loading, setLoading] = useState(immediate);
+  const [header, setHeader] = useState(null);
+  const [body, setBody] = useState(null);
   const [error, setError] = useState(null);
   const API_URL = window.ENV?.API_URL;
   const fetch = (overrideOptions = {}) => {
     setLoading(true);
     setError(null);
+
     const config = {
       url: API_URL + url,
       method: options.method || 'get',
+      headers: {
+        ...(options.auth && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`}),
+        ...(options.headers || {})
+      },
+      withCredentials: options.withCredentials || false,
       ...options,
       ...overrideOptions,
     };
     axios(config).then( res => {
-          const { header, body } = res.data;
-          if (header.code !== 0) {
-            setError(header.message || '알 수 없는 오류');
-            setData([]);
-            setTotalCount(0);
+          const { hd, bd } = res.data;
+          if (hd.code[0] !== "S") {
+            setError(hd);
           } else {
-            setData(body.items || []);
-            setTotalCount(body.totalCount || 0);
+            setHeader(hd);
+            setBody(bd);
           }
         })
         .catch(error => {
           console.error(error);
-          setError('요청 실패');
+          setError(error);
         })
         .finally(() => {
           setLoading(false);
@@ -45,7 +49,7 @@ const useApi = (url, options = {}, immediate = true) => {
     if (immediate) fetch();
   }, [url]);
 
-  return { data, totalCount, loading, error, refetch: fetch };
+  return { header, body, error, loading, refetch: fetch };
 };
 
 export default useApi;
