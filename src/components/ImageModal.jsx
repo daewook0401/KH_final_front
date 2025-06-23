@@ -15,7 +15,6 @@ function ImageModal({ images, currentIndex, onClose, onPrev, onNext }) {
         className="relative max-w-4xl w-full px-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 좌우 텍스트 화살표 */}
         {!isFirst && (
           <button
             onClick={onPrev}

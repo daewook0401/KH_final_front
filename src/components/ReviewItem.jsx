@@ -8,7 +8,6 @@ function ReviewItem({ review }) {
         <div className="text-sm text-gray-500">{review.date}</div>
       </div>
 
-      {/* 별점 */}
       <RatingStars value={review.rating} />
 
       <ImageGallery images={review.images} />

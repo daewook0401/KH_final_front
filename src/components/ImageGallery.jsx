@@ -8,15 +8,6 @@ function ImageGallery({ images }) {
   const toShow = expanded ? images : images.slice(0, 4);
   const remaining = images.length - 4;
 
-  const columnCount =
-    toShow.length === 1
-      ? "grid-cols-1"
-      : toShow.length === 2
-      ? "grid-cols-2"
-      : toShow.length === 3
-      ? "grid-cols-3"
-      : "grid-cols-4";
-
   const openModal = (idx) => setCurrentIndex(idx);
   const closeModal = () => setCurrentIndex(null);
   const handlePrev = () =>
@@ -24,17 +15,33 @@ function ImageGallery({ images }) {
   const handleNext = () =>
     setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : prev));
 
+  const isFlexLayout = toShow.length <= 2;
+
   return (
     <>
       <div className="max-w-4xl mx-auto">
-        <div className={`grid ${columnCount} gap-2`}>
+        <div
+          className={
+            isFlexLayout
+              ? "flex justify-center gap-4 flex-wrap"
+              : `grid gap-2 ${
+                  toShow.length === 3 ? "grid-cols-3" : "grid-cols-4"
+                }`
+          }
+        >
           {toShow.map((src, idx) => {
             const isOverlaySlot = !expanded && idx === 3 && images.length > 4;
 
             return (
               <div
                 key={idx}
-                className="relative overflow-hidden rounded-lg w-full aspect-square cursor-pointer"
+                className={`relative overflow-hidden rounded-lg aspect-square cursor-pointer ${
+                  isFlexLayout
+                    ? toShow.length === 1
+                      ? "w-[360px]"
+                      : "w-[300px]"
+                    : "w-full"
+                }`}
                 onClick={() =>
                   !isOverlaySlot && openModal(expanded ? idx : idx)
                 }
