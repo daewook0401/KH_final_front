@@ -28,7 +28,7 @@ const useApi = (url, options = {}, immediate = true) => {
       ...overrideOptions,
     };
     axios(config).then( res => {
-          const { hd, bd } = res.data;
+          const { header: hd, body: bd } = res.data;
           if (hd.code[0] !== "S") {
             setError(hd);
           } else {
