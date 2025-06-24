@@ -3,7 +3,6 @@ function RatingStars({ value, max = 5 }) {
 
   for (let i = 0; i < max; i++) {
     if (value >= i + 1) {
-      // full star
       stars.push(
         <svg
           key={i}
@@ -15,7 +14,6 @@ function RatingStars({ value, max = 5 }) {
         </svg>
       );
     } else if (value >= i + 0.5) {
-      // half star
       stars.push(
         <svg
           key={i}
@@ -36,7 +34,6 @@ function RatingStars({ value, max = 5 }) {
         </svg>
       );
     } else {
-      // empty star
       stars.push(
         <svg
           key={i}

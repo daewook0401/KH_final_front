@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ImageModal from "./ImageModal";
 
-function ImageGallery({ images }) {
+function ImageGallery({ images = [] }) {
   const [expanded, setExpanded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
 

@@ -1,66 +1,122 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 import ReviewItem from "../../components/ReviewItem";
 import SortSelector from "../../components/SortSelector";
-import img1 from "../../assets/images/장어.jpg";
+import Pagination from "../../common/Pagination/Pagination";
+import MyReview from "../../components/MyReview";
 
-const dummyReviews = [
-  {
-    id: 1,
-    name: "김철수",
-    rating: 5,
-    date: "2025-06-20",
-    images: [img1, img1, img1, img1, img1],
-    content: "아주 만족스럽습니다. 추천해요!",
-  },
-  {
-    id: 2,
-    name: "이영희",
-    rating: 3,
-    date: "2025-06-21",
-    images: [img1, img1],
-    content: "보통이에요. 나쁘진 않지만 아쉽네요.",
-  },
-  {
-    id: 3,
-    name: "박지성",
-    rating: 4.5,
-    date: "2025-06-22",
-    images: [img1],
-    content: "거의 완벽하지만 조금 아쉬운 점도 있어요.",
-  },
-];
+function ReviewPage({ myMemberNo, restaurantNo }) {
+  const navigate = useNavigate();
 
-function ReviewPage() {
+  const [reviews, setReviews] = useState([]);
   const [sortKey, setSortKey] = useState("ratingDesc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+
+  useEffect(() => {
+    if (!restaurantNo) return;
+
+    axios
+      .get("/api/reviews", { params: { restaurantNo } })
+      .then((response) => {
+        setReviews(response.data);
+      })
+      .catch((error) => {
+        console.error("리뷰 로딩 실패", error);
+      });
+  }, [restaurantNo]);
 
   const sortedReviews = useMemo(() => {
-    const sorted = [...dummyReviews];
-    switch (sortKey) {
-      case "ratingDesc":
-        sorted.sort((a, b) => b.rating - a.rating);
-        break;
-      case "ratingAsc":
-        sorted.sort((a, b) => a.rating - b.rating);
-        break;
-      case "dateDesc":
-        sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
-        break;
-      case "dateAsc":
-        sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-        break;
-      default:
-        break;
+    const sorted = [...reviews];
+    const sortMethods = {
+      ratingDesc: (a, b) => b.reviewScore - a.reviewScore,
+      ratingAsc: (a, b) => a.reviewScore - b.reviewScore,
+      dateDesc: (a, b) => new Date(b.createDate) - new Date(a.createDate),
+      dateAsc: (a, b) => new Date(a.createDate) - new Date(b.createDate),
+    };
+    return sorted.sort(sortMethods[sortKey] || (() => 0));
+  }, [reviews, sortKey]);
+
+  const myReviews = myMemberNo
+    ? sortedReviews.filter((r) => r.memberNo === myMemberNo)
+    : [];
+
+  const otherReviews = sortedReviews.filter(
+    (r) => !myMemberNo || r.memberNo !== myMemberNo
+  );
+
+  const validOtherReviews = otherReviews.filter(
+    (r) => r && r.reviewNo !== undefined
+  );
+
+  const totalItems = validOtherReviews.length;
+
+  const pagedReviews = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return validOtherReviews.slice(start, start + itemsPerPage);
+  }, [validOtherReviews, currentPage]);
+
+  const pageInfo = {
+    boardNoPerPage: itemsPerPage,
+    totalBoardNo: totalItems,
+    pageSize: 5,
+  };
+
+  const handleWriteReview = () => {
+    if (!myMemberNo) {
+      alert("로그인이 안되어 있습니다. 로그인페이지로 이동합니다.");
+      navigate("/login");
+    } else {
+      navigate(`/reviews/write?restaurantNo=${restaurantNo}`);
     }
-    return sorted;
-  }, [sortKey]);
+  };
+
+  const handleEditReview = (review) => {
+    alert(`리뷰 수정: ${review.reviewNo}`);
+  };
+
+  const handleDeleteReview = (reviewNo) => {
+    alert(`리뷰 삭제: ${reviewNo}`);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-1">
-      <SortSelector sortKey={sortKey} onChange={setSortKey} />
+    <div className="max-w-5xl mx-auto p-4 space-y-6 bg-gray-100 min-h-screen">
+      <MyReview
+        reviews={myReviews}
+        onWriteReview={handleWriteReview}
+        onEditReview={handleEditReview}
+        onDeleteReview={handleDeleteReview}
+      />
 
-      {sortedReviews.map((review) => (
-        <ReviewItem key={review.id} review={review} />
-      ))}
+      {totalItems === 0 ? (
+        <div className="text-center bg-gray-200 rounded text-gray-500 py-10">
+          등록된 리뷰가 없습니다.
+        </div>
+      ) : (
+        <>
+          <SortSelector
+            sortKey={sortKey}
+            onChange={(key) => {
+              setSortKey(key);
+              setCurrentPage(1);
+            }}
+          />
+
+          {pagedReviews.map((review) => (
+            <ReviewItem key={review.reviewNo} review={review} />
+          ))}
+
+          {totalItems > itemsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              pageInfo={pageInfo}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }
