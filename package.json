@@ -16,11 +16,8 @@
     "@mui/material": "^7.1.2",
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.10.0",
-<<<<<<< HEAD
     "date-fns": "^4.1.0",
-=======
     "bootstrap": "^5.3.7",
->>>>>>> d8d235b68a4327f27b137f9584a392e5d8bfdade
     "js-cookie": "^3.0.5",
     "react": "^19.1.0",
     "react-calendar": "^6.0.0",
