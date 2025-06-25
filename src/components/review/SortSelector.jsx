@@ -1,5 +1,3 @@
-import React from "react";
-
 const options = [
   { value: "ratingDesc", label: "별점 높은순" },
   { value: "ratingAsc", label: "별점 낮은순" },

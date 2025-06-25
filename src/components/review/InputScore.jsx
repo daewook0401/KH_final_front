@@ -1,6 +1,6 @@
-import RatingStars from "./RatingStars";
+import RatingStars from "../RatingStars";
 import { useState, useRef } from "react";
-import ScoreSelect from "./ScoreSelect";
+import ScoreSelect from "./SelectScore";
 
 const InputScore = ({ value, onChange }) => {
   const [hover, setHover] = useState(null);
@@ -12,7 +12,7 @@ const InputScore = ({ value, onChange }) => {
     const x = clientX - rect.left;
     const relative = Math.max(0, Math.min(1, x / rect.width));
     const rawRating = Math.round(relative * 10) / 2;
-    return rawRating < 0.5 ? 0.5 : rawRating; // 0.5 미만은 0.5로 고정
+    return rawRating < 0.5 ? 0.5 : rawRating;
   };
 
   const handleMouseMove = (e) => {

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import RatingStars from "./RatingStars";
+import RatingStars from "../RatingStars";
 
-const ScoreSelect = ({ value, onChange }) => {
+const SelectScore = ({ value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const options = [...Array(10)].map((_, i) => (i + 1) * 0.5);
 
@@ -44,4 +44,4 @@ const ScoreSelect = ({ value, onChange }) => {
   );
 };
 
-export default ScoreSelect;
+export default SelectScore;

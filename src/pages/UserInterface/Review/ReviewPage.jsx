@@ -1,16 +1,16 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useUser } from "../../context/UserContext";
-
-import ReviewItem from "../../components/ReviewItem";
-import SortSelector from "../../components/SortSelector";
-import Pagination from "../../common/Pagination/Pagination";
-import MyReview from "../../components/MyReview";
+import AuthContext from "../../../provider/AuthContext";
+import ReviewItem from "../../../components/ReviewItem";
+import SortSelector from "../../../components/SortSelector";
+import Pagination from "../../../common/Pagination/Pagination";
+import MyReview from "../../../components/MyReview";
 
 function ReviewPage({ restaurantNo }) {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { auth } = useContext(AuthContext);
+  const user = auth.loginInfo;
 
   const [reviews, setReviews] = useState([]);
   const [sortKey, setSortKey] = useState("ratingDesc");
@@ -30,35 +30,15 @@ function ReviewPage({ restaurantNo }) {
       });
   }, [restaurantNo]);
 
-  const sortedReviews = useMemo(() => {
-    const sorted = [...reviews];
-    const sortMethods = {
-      ratingDesc: (a, b) => b.reviewScore - a.reviewScore,
-      ratingAsc: (a, b) => a.reviewScore - b.reviewScore,
-      dateDesc: (a, b) => new Date(b.createDate) - new Date(a.createDate),
-      dateAsc: (a, b) => new Date(a.createDate) - new Date(b.createDate),
-    };
-    return sorted.sort(sortMethods[sortKey] || (() => 0));
-  }, [reviews, sortKey]);
-
-  const myReviews = user
-    ? sortedReviews.filter((r) => r.memberNo === user.memberNo)
-    : [];
-
-  const otherReviews = sortedReviews.filter(
-    (r) => !user || r.memberNo !== user.memberNo
-  );
-
-  const validOtherReviews = otherReviews.filter(
-    (r) => r && r.reviewNo !== undefined
-  );
-
-  const totalItems = validOtherReviews.length;
+  const myReviews = reviews.filter((r) => r.memberNo === user.memberNo);
+  const otherReviews = reviews.filter((r) => r.memberNo !== user.memberNo);
 
   const pagedReviews = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return validOtherReviews.slice(start, start + itemsPerPage);
-  }, [validOtherReviews, currentPage]);
+    return otherReviews.slice(start, start + itemsPerPage);
+  }, [otherReviews, currentPage]);
+
+  const totalItems = otherReviews.length;
 
   const pageInfo = {
     boardNoPerPage: itemsPerPage,
@@ -67,32 +47,36 @@ function ReviewPage({ restaurantNo }) {
   };
 
   const handleWriteReview = () => {
-    if (!user) {
+    if (!auth.isAuthenticated) {
       alert("로그인이 안되어 있습니다. 로그인 페이지로 이동합니다.");
       navigate("/login");
     } else {
-      navigate(`/reviews/write?restaurantNo=${restaurantNo}`);
+      navigate(`/reviews/restaurantNo=${restaurantNo}`);
     }
   };
 
   const handleEditReview = (review) => {
-    if (!user) {
+    if (!auth.isAuthenticated) {
       alert("로그인 후 수정이 가능합니다.");
       navigate("/login");
     } else {
-      navigate(`/reviews/write?reviewId=${review.reviewNo}&isEditMode=true`);
+      navigate(`/reviews/reviewId=${review.reviewNo}`);
     }
   };
 
   const handleDeleteReview = (reviewNo) => {
-    if (!user) {
+    if (!auth.isAuthenticated) {
       alert("로그인 후 삭제가 가능합니다.");
       navigate("/login");
     } else {
       const confirmDelete = window.confirm("정말 삭제하시겠습니까?");
       if (confirmDelete) {
         axios
-          .delete(`/api/reviews/${reviewNo}`)
+          .delete(`/api/reviews/${reviewNo}`, {
+            headers: {
+              Authorization: `Bearer ${auth.tokens.accessToken}`,
+            },
+          })
           .then(() => {
             alert("리뷰가 삭제되었습니다.");
             setReviews((prevReviews) =>
@@ -116,7 +100,7 @@ function ReviewPage({ restaurantNo }) {
         onDeleteReview={handleDeleteReview}
       />
 
-      {user && (
+      {auth.isAuthenticated && (
         <div className="text-center">
           <button
             onClick={handleWriteReview}

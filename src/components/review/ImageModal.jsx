@@ -1,5 +1,3 @@
-import React from "react";
-
 function ImageModal({ images, currentIndex, onClose, onPrev, onNext }) {
   if (currentIndex === null || !images || images.length === 0) return null;
 

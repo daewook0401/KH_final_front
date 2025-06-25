@@ -1,5 +1,3 @@
-import React from "react";
-
 function ReviewDrive({ onWriteReview }) {
   return (
     <div className="p-6 mb-6 bg-white border border-blue-200 rounded text-center">
