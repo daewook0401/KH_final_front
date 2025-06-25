@@ -23,7 +23,7 @@ import {
   ModalRightTopHeader,
   ModalWrapper,
   TimeBox,
-} from "./Reservation.styles";
+} from "./ReservationStyles";
 const Reservation = () => {
   const [reservationModal, setReservationModal] = useState(true);
 

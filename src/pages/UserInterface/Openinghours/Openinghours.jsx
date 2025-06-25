@@ -22,7 +22,7 @@ import {
   Span,
   H2,
   ModalFooter,
-} from "./Openinghours.styles";
+} from "./OpeninghoursStyles";
 
 const Openinghours = ({ restaurantNo }) => {
   const [openingHoursModal, setOpeningHoursModal] = useState(true);
@@ -54,7 +54,7 @@ const Openinghours = ({ restaurantNo }) => {
   };
 
   const handleTime = (time, day, type) => {
-    if (time.getMinutes() % 10 === 0 ) {
+    if (time.getMinutes() % 10 === 0) {
       setOpeningHoursInfo((prev) =>
         prev.map((info, index) =>
           index === day
