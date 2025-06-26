@@ -18,8 +18,8 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Main />} />
-          <Route path="/restaurant/*" element={<Restaurant />} />
-        <Route path="/restaurantInsert" element={<RestaurantInsert />} />
+          <Route path="/restaurant/:restaurant_no" element={<Restaurant />} />
+          <Route path="/restaurant-insert" element={<RestaurantInsert />} />
           <Route path="/openinghours" element={<Openinghours />} />
           <Route path="/reservation" element={<Reservation />} />
           <Route path="/settings" element={<Settings />} />
@@ -27,7 +27,6 @@ function App() {
       </AuthProvider>
       <ChattingBtn />
     </>
-
   );
 }
 
