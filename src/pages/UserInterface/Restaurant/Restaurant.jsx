@@ -2,27 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../../common/Header/Header";
 import KakaoMap from "./KakaoMap";
+import RatingStars from "../../../components/RatingStars";
 
-// StarRating 컴포넌트: Tailwind CSS 클래스를 직접 사용하도록 수정
 const StarRating = ({ averageRating, reviewCount }) => {
   const stars = [];
   const ratingValue = Number(averageRating) || 0;
 
-  for (let i = 1; i <= 5; i++) {
-    stars.push(
-      <span
-        key={i}
-        className={`text-2xl ${
-          i <= ratingValue ? "text-yellow-400" : "text-gray-300"
-        }`}
-      >
-        ★
-      </span>
-    );
-  }
   return (
     <div className="flex items-center mb-4">
-      {stars}
+      <RatingStars value={ratingValue} />
       <span className="ml-2.5 font-bold text-gray-600">
         {ratingValue.toFixed(1)}점 ({reviewCount}명의 평가)
       </span>
@@ -40,7 +28,6 @@ const Restaurant = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // useEffect 로직은 원본의 더미데이터를 그대로 사용하도록 복원
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
