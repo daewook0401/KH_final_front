@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 /**
  * 공통 API 요청 훅
@@ -18,10 +18,12 @@ const useApi = (url, options = {}, immediate = true) => {
 
     const config = {
       url: API_URL + url,
-      method: options.method || 'get',
+      method: options.method || "get",
       headers: {
-        ...(options.auth && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`}),
-        ...(options.headers || {})
+        ...(options.auth && {
+          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        }),
+        ...(options.headers || {}),
       },
       withCredentials: options.withCredentials || false,
       ...options,
