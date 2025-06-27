@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Header from "../../../common/Header/Header";
 import KakaoMap from "./KakaoMap";
 import RatingStars from "../../../components/RatingStars";
+import ReviewPage from "../Review/ReviewPage";
 
 const StarRating = ({ averageRating, reviewCount }) => {
   const stars = [];
@@ -235,6 +236,7 @@ const Restaurant = () => {
               ))}
             </div>
           </section>
+          <ReviewPage restaurantNo={restaurantId} />
         </main>
 
         <aside className="flex-1">

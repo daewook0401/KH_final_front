@@ -1,5 +1,5 @@
 import ImageGallery from "./ImageGallery";
-import RatingStars from "./RatingStars";
+import RatingStars from "../RatingStars";
 
 function ReviewItem({ review, isMyReview = false, onEdit, onDelete }) {
   return (
