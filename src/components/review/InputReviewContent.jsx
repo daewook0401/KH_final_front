@@ -1,15 +1,17 @@
-import { useRef } from "react";
+import { useRef, forwardRef } from "react";
 
 const MAX_LENGTH = 200;
 
-const InputReviewContent = ({ value, onChange }) => {
-  const textareaRef = useRef(null);
+const InputReviewContent = forwardRef(({ value, onChange }, ref) => {
+  const internalRef = useRef(null);
 
   const handleChange = (e) => {
     if (e.target.value.length <= MAX_LENGTH) {
       onChange(e);
     }
   };
+
+  const textareaRef = ref || internalRef;
 
   return (
     <div className="relative w-full">
@@ -30,6 +32,6 @@ const InputReviewContent = ({ value, onChange }) => {
       </div>
     </div>
   );
-};
+});
 
 export default InputReviewContent;
