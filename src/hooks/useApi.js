@@ -30,7 +30,7 @@ const useApi = (url, options = {}, immediate = true) => {
     axios(config).then( res => {
           const { header: hd, body: bd } = res.data;
           if (hd.code[0] !== "S") {
-            setError(hd);
+            setError(hd.message);
           } else {
             setHeader(hd);
             setBody(bd);
@@ -38,7 +38,7 @@ const useApi = (url, options = {}, immediate = true) => {
         })
         .catch(error => {
           console.error(error);
-          setError(error);
+          setError(error.response.data);
         })
         .finally(() => {
           setLoading(false);
