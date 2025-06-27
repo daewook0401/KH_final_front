@@ -1,65 +1,87 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useState, useEffect, useRef, useContext } from "react";
+import useApi from "../../../hooks/useApi";
 import InputScore from "../../../components/review/InputScore";
-import ReviewTextarea from "../../../components/review/InputReviewContent";
 import ImageUploader from "../../../components/review/ImageUploader";
-
-function InsertReviewPage({ restaurantNo }) {
-  const navigate = useNavigate();
-
+import InputReviewContent from "../../../components/review/InputReviewContent";
+import AuthContext from "../../../provider/AuthContext";
+import { useNavigate } from "react-router-dom";
+function InsertReviewPage({
+  restaurantId,
+  onSubmitSuccess,
+  focusReviewTextarea,
+}) {
   const [score, setScore] = useState(0);
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [memberNickname, setMemberNickname] = useState("");
   const [accessToken, setAccessToken] = useState("");
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem("accessToken");
-    const storedNickname = localStorage.getItem("memberNickname");
+  const { auth } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const reviewTextareaRef = useRef(null);
 
-    setAccessToken(storedToken);
-    setMemberNickname(storedNickname);
-  }, [navigate]);
+  useEffect(() => {
+    setAccessToken(sessionStorage.getItem("accessToken"));
+    setMemberNickname(sessionStorage.getItem("memberNickname"));
+  }, []);
+
+  useEffect(() => {
+    if (focusReviewTextarea && reviewTextareaRef.current) {
+      reviewTextareaRef.current.focus();
+    }
+  }, [focusReviewTextarea]);
+
+  const {
+    loading,
+    error,
+    refetch: postReview,
+  } = useApi(
+    "/api/reviews",
+    { method: "post", auth: true, immediate: false },
+    false
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!auth.isAuthenticated) {
+      alert("로그인 후 리뷰 등록이 가능합니다.");
+      navigate("/login");
+      return;
+    }
     const formData = new FormData();
-    formData.append("restaurantNo", restaurantNo);
+    formData.append("restaurantNo", restaurantId);
     formData.append("reviewScore", score);
     formData.append("reviewContent", content);
     formData.append("memberNickname", memberNickname);
-    images.forEach((img, idx) => {
-      formData.append("images", img);
-    });
+    images.forEach((img) => formData.append("images", img));
 
-    axios
-      .post("/api/reviews", formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      })
+    postReview({
+      data: formData,
+      headers: { "Content-Type": "multipart/form-data" },
+    })
       .then(() => {
         alert("리뷰가 등록되었습니다!");
-        navigate(`/reviews/restaurantNo=${restaurantNo}`);
+        setScore(0);
+        setContent("");
+        setImages([]);
+        onSubmitSuccess?.();
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         alert("리뷰 작성 중 오류가 발생했습니다.");
       });
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-100">
-      <div className="max-w-3xl w-full p-6 space-y-6 bg-gray-200 rounded-lg">
+    <div className="flex bg-gray-100">
+      <div className="max-w-5xl w-full p-6 space-y-6 bg-gray-200 rounded-lg">
         <h1 className="text-2xl font-bold">리뷰 작성</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <InputScore value={score} onChange={setScore} />
           <ImageUploader images={images} setImages={setImages} />
-          <ReviewTextarea
+          <InputReviewContent
+            ref={reviewTextareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
           />
@@ -67,11 +89,17 @@ function InsertReviewPage({ restaurantNo }) {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="w-32 bg-blue-600 text-white py-2 rounded-2xl hover:bg-blue-700"
+              disabled={loading}
+              className="w-32 bg-blue-600 text-white py-2 rounded-2xl hover:bg-blue-700 disabled:opacity-50"
             >
-              리뷰 등록
+              {loading ? "등록 중..." : "리뷰 등록"}
             </button>
           </div>
+          {error && (
+            <p className="text-red-500">
+              오류가 발생했습니다. 다시 시도해주세요.
+            </p>
+          )}
         </form>
       </div>
     </div>

@@ -1,27 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import * as S from "./Restaurant.styles";
 import Header from "../../../common/Header/Header";
 import KakaoMap from "./KakaoMap";
+import RatingStars from "../../../components/RatingStars";
+import ReviewPage from "../Review/ReviewPage";
 
 const StarRating = ({ averageRating, reviewCount }) => {
   const stars = [];
   const ratingValue = Number(averageRating) || 0;
 
-  for (let i = 1; i <= 5; i++) {
-    stars.push(
-      <span key={i} className={i <= ratingValue ? "star filled" : "star"}>
-        ★
-      </span>
-    );
-  }
   return (
-    <S.StarRatingContainer>
-      {stars}
-      <span className="rating-text">
+    <div className="flex items-center mb-4">
+      <RatingStars value={ratingValue} />
+      <span className="ml-2.5 font-bold text-gray-600">
         {ratingValue.toFixed(1)}점 ({reviewCount}명의 평가)
       </span>
-    </S.StarRatingContainer>
+    </div>
   );
 };
 
@@ -146,78 +140,106 @@ const Restaurant = () => {
     }
   };
 
-  if (loading) return <S.LoadingMessage>로딩 중...</S.LoadingMessage>;
-  if (error) return <S.ErrorMessage>오류: {error}</S.ErrorMessage>;
+  if (loading) {
+    return <div className="text-center p-12 text-lg">로딩 중...</div>;
+  }
+  if (error) {
+    return (
+      <div className="text-center p-12 text-lg text-red-600">오류: {error}</div>
+    );
+  }
   if (!restaurantData.details || !restaurantData.ratingInfo) {
-    return <div>가게 정보를 표시할 수 없습니다.</div>;
+    return (
+      <div className="text-center p-12">가게 정보를 표시할 수 없습니다.</div>
+    );
   }
 
   const { details, ratingInfo, menuItems } = restaurantData;
+  const cardStyles = "bg-white p-6 border border-gray-200 rounded-lg shadow-sm";
 
   return (
     <>
       <Header />
-      <S.PageContainer>
-        <S.MainContent>
-          <S.RestaurantHeader>
-            <S.MainImage
+      <div className="flex max-w-[1200px] my-5 mx-auto p-5 gap-5 font-sans bg-gray-50">
+        <main className="flex-[3] flex flex-col gap-8">
+          <section className={cardStyles}>
+            <img
               src={details.restaurantMainPhoto}
               alt={`${details.restaurantName} 대표 사진`}
+              className="w-full h-[300px] object-cover rounded-lg bg-gray-200 mb-5"
             />
-            <S.HeaderInfo>
-              <S.Category>
+            <div>
+              <p className="text-gray-500 text-sm m-0">
                 {details.restaurantCuisineType?.join(", ")}
-              </S.Category>
-              <S.RestaurantName>{details.restaurantName}</S.RestaurantName>
+              </p>
+              <h1 className="mt-1 mb-2 text-3xl font-bold text-gray-800">
+                {details.restaurantName}
+              </h1>
               <StarRating
                 averageRating={ratingInfo.averageRating}
                 reviewCount={ratingInfo.reviewCount}
               />
-              <S.AddressContainer>
+              <div className="flex items-center gap-2 bg-gray-100 p-2.5 rounded">
                 <span>{details.restaurantAddress}</span>
-                <S.CopyButton onClick={handleCopyAddress}>
+                <button
+                  onClick={handleCopyAddress}
+                  className="bg-[#ff7750] text-white py-1.5 px-3 rounded cursor-pointer font-bold transition-colors hover:bg-[#e66a45]"
+                >
                   주소 복사
-                </S.CopyButton>
-              </S.AddressContainer>
-            </S.HeaderInfo>
-          </S.RestaurantHeader>
+                </button>
+              </div>
+            </div>
+          </section>
 
-          <S.RestaurantDescription>
-            <h3>가게 설명</h3>
-            <p>{details.restaurantDescription}</p>
-          </S.RestaurantDescription>
+          <section className={cardStyles}>
+            <h3 className="mt-0 mb-4 text-[#ff7750] text-xl font-bold">
+              가게 설명
+            </h3>
+            <p className="text-gray-600 leading-relaxed">
+              {details.restaurantDescription}
+            </p>
+          </section>
 
-          <S.MenuSection>
-            <h2>메뉴 정보</h2>
-            <S.MenuTable>
-              <S.MenuTableHeader>
+          <section className={cardStyles}>
+            <h2 className="mt-0 mb-4 text-[#ff7750] text-xl font-bold">
+              메뉴 정보
+            </h2>
+            <div className="flex flex-col border-t-2 border-gray-100">
+              <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-4 px-2.5 border-b border-gray-100 font-bold text-gray-600 bg-gray-50">
                 <div>메뉴</div>
-                <div>가격</div>
-                <div>사진</div>
-              </S.MenuTableHeader>
+                <div className="text-right pr-5">가격</div>
+                <div className="text-center">사진</div>
+              </div>
               {menuItems.map((item) => (
-                <S.MenuItem key={item.menuId}>
-                  <div className="menu-name">{item.menuName}</div>
-                  <div className="menu-price">
+                <div
+                  key={item.menuId}
+                  className="grid grid-cols-[2fr_1fr_1fr] items-center py-4 px-2.5 border-b border-gray-100"
+                >
+                  <div className="font-bold text-gray-800">{item.menuName}</div>
+                  <div className="text-right pr-5 text-gray-600">
                     {item.menuPrice.toLocaleString()}원
                   </div>
-                  <S.MenuImageContainer>
+                  <div className="flex justify-center items-center h-20">
                     {item.menuImageUrl ? (
-                      <S.MenuImage
+                      <img
                         src={item.menuImageUrl}
                         alt={item.menuName}
+                        className="max-w-full max-h-full object-cover rounded"
                       />
                     ) : (
-                      <S.NoImage>사진 없음</S.NoImage>
+                      <div className="text-gray-400 text-sm text-center w-full">
+                        사진 없음
+                      </div>
                     )}
-                  </S.MenuImageContainer>
-                </S.MenuItem>
+                  </div>
+                </div>
               ))}
-            </S.MenuTable>
-          </S.MenuSection>
-        </S.MainContent>
-        <S.Sidebar>
-          {/* 좌표값이 있을 때만 KakaoMap 컴포넌트를 렌더링 */}
+            </div>
+          </section>
+          <ReviewPage restaurantNo={restaurantId} />
+        </main>
+
+        <aside className="flex-1">
           {details?.restaurantMapX && details?.restaurantMapZ ? (
             <KakaoMap
               lat={details.restaurantMapX}
@@ -225,13 +247,15 @@ const Restaurant = () => {
               name={details.restaurantName}
             />
           ) : (
-            <S.MapPlaceholder>
+            <div className="w-full h-[300px] bg-gray-200 flex justify-center items-center text-gray-500 rounded-lg text-lg">
               위치 정보가 없어 지도를 표시할 수 없습니다.
-            </S.MapPlaceholder>
+            </div>
           )}
-          <div>클릭시 카카오맵에서 해당 위치를 확인할 수 있습니다.</div>
-        </S.Sidebar>
-      </S.PageContainer>
+          <div className="text-sm text-gray-600 mt-2">
+            클릭시 카카오맵에서 해당 위치를 확인할 수 있습니다.
+          </div>
+        </aside>
+      </div>
     </>
   );
 };
