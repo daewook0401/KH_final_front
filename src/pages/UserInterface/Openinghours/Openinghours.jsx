@@ -214,6 +214,8 @@ const Openinghours = ({ restaurantNo }) => {
                               timeIntervals={10}
                               dateFormat="HH:mm"
                               locale="ko"
+                              minTime={new Date(0, 0, 0, 10, 0)} // 10:00
+                              maxTime={new Date(0, 0, 0, 26, 0)} // 18:00
                               customInput={<TimeInput />}
                             />
                           </div>
@@ -229,6 +231,20 @@ const Openinghours = ({ restaurantNo }) => {
                               timeIntervals={10}
                               dateFormat="HH:mm"
                               locale="ko"
+                              minTime={
+                                new Date(
+                                  0,
+                                  0,
+                                  0,
+                                  parseTimeStringToDate(
+                                    info.startTime
+                                  ).getHours() + 1,
+                                  parseTimeStringToDate(
+                                    info.startTime
+                                  ).getMinutes()
+                                )
+                              } // 10:00
+                              maxTime={new Date(0, 0, 0, 23, 50)} // 18:00
                               customInput={<TimeInput />}
                             />
                           </div>
