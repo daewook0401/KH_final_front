@@ -87,7 +87,7 @@ const CategorySection = ({ title, restaurants }) => {
       <h2 className="text-2xl font-bold mb-4">
         <div className="flex justify-between items-center">
           <span>{title}</span>
-          <button className="text-sm font-bold text-gray-800 hover:text-gray-500 text-[25px]">
+          <button className="cursor-pointer text-sm font-bold text-gray-800 hover:text-gray-500 text-[25px]">
             더보기
           </button>
         </div>
