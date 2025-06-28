@@ -12,6 +12,7 @@ import RestaurantInsert from "./pages/UserInterface/Restaurant/RestaurantInsert"
 import MyPage from "./pages/UserInterface/MyPage/MyPage";
 import Login from "./pages/UserInterface/Login/Login";
 import SignUp from "./pages/UserInterface/Login/SignUp";
+import InsertReviewPage from "./pages/UserInterface/Review/InsertReviewPage";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -23,6 +24,10 @@ function App() {
           <Route path="/" element={<Main />} />
           <Route path="/restaurant/:restaurant_no" element={<Restaurant />} />
           <Route path="/restaurant-insert" element={<RestaurantInsert />} />
+          <Route
+            path="/reviews/:restaurant_no"
+            element={<InsertReviewPage />}
+          />
           <Route path="/openinghours" element={<Openinghours />} />
           <Route path="/reservation" element={<Reservation />} />
           <Route path="/settings" element={<Settings />} />
