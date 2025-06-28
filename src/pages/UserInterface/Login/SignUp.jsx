@@ -1,52 +1,69 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../../../common/Header/Header";
+import useInterval from "../../../hooks/useInterval";
+import useApi from "../../../hooks/useApi";
+import { idRegex, nickRegex, emailRegex, pwRegex, nameRegex } from "../../../components/Regex";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
-    id: "",
-    password: "",
+    memberId: "",
+    memberPw: "",
     confirmPassword: "",
-    name: "",
-    nickname: "",
-    email: "",
+    memberName: "",
+    memberNickName: "",
+    memberEmail: "",
   });
-
   const [passwordError, setPasswordError] = useState("");
+  const [nameError, setNameError] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [isVerifyId, setIsVerifyId] = useState(false);
+  const [isVerifyNickName, setIsVerifyNickName] = useState(false);
   const [isVerificationSent, setIsVerificationSent] = useState(false); // 인증번호 발송 여부
   const [verificationCode, setVerificationCode] = useState(""); // 사용자가 입력한 인증번호
   const [isEmailVerified, setIsEmailVerified] = useState(false); // 이메일 최종 인증 여부
   const [timer, setTimer] = useState(180); // 타이머 (3분)
-
+  const API_URL = window.ENV?.API_URL;
+  // const { header, body, error, loading } = useApi('/api');
+  const { header :idHeader, body : idBody, error : idError, loading : idLoading, refetch:checkId } = useApi('/api/member/check-id', { method: 'post', data: { memberId : formData.memberId}}, false);
+  const { header : nickNameHeader, body : nickNameBody, error : nickNameError, loading : nickNameLoading, refetch:checkNickName } = useApi('/api/member/check-nickname', { method: 'post', data: { memberNickName : formData.memberNickName}}, false);
+  const { header : emailHeader, body : emailBody, error : emailError, loading : emailLoading, refetch:sendVerifyCode } = useApi('/api/email/verify-email', { method: 'post', data: { memberEmail : formData.memberEmail}}, false);
+  const { header : verifyHeader, body : verifyBody, error : verifyError, loading : verifyLoading, refetch:checkVerifyCode } = useApi('/api/email/check-verifycode', { method: 'post', data: { email : formData.memberEmail, verifyCode: verificationCode}}, false);
+  const { header: signupHeader, body: signupBody, error:signupError, loading: signupLoading, refetch: signup } = useApi("/api/member", { method: 'post' }, false);
   const navigate = useNavigate();
+  
 
   useEffect(() => {
-    if (
-      formData.confirmPassword &&
-      formData.password !== formData.confirmPassword
-    ) {
+    if (!(pwRegex.test(formData.memberPw)) && formData.memberPw){
+      setPasswordError("비밀번호는 대소문자, 숫자, 특수문자 중 3가지 이상을 포함해야 합니다.");
+    } else if (formData.confirmPassword && formData.memberPw !== formData.confirmPassword) {
       setPasswordError("비밀번호가 일치하지 않습니다.");
     } else {
       setPasswordError("");
     }
-  }, [formData.password, formData.confirmPassword]);
-
-  useEffect(() => {
-    if (isVerificationSent && !isEmailVerified && timer > 0) {
-      const intervalId = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(intervalId);
+    if (formData.memberName && !(nameRegex.test(formData.memberName))) {
+      setNameError("이름은 한글이나 영어로 2 ~ 20 필수 입력입니다.");
+    } else {
+      setNameError("");
     }
-    if (timer === 0) {
-      setIsVerificationSent(false);
-      alert("인증 시간이 만료되었습니다. 다시 시도해주세요.");
-    }
-  }, [isVerificationSent, isEmailVerified, timer]);
-
+  }, [formData]);
+  useInterval(
+    () => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          // 만료 처리
+          setIsVerificationSent(false);
+          alert("인증 시간이 만료되었습니다. 다시 시도해주세요.");
+          return 0;
+        }
+        return prev - 1;
+      });
+    },
+    // delay: 조건이 충족될 때만 1000ms, 아니면 멈춤
+    isVerificationSent && !isEmailVerified && timer > 0 ? 1000 : null
+  );
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -65,12 +82,17 @@ const SignUp = () => {
   };
 
   const handleSendVerification = () => {
-    if (!formData.email) {
+    if (!formData.memberEmail) {
       alert("이메일을 먼저 입력해주세요.");
       return;
     }
-    // 이메일 발송 요청 API를 호출
-    alert(`'${formData.email}'로 인증번호가 발송되었습니다. (데모)`);
+    if (!emailRegex.test(formData.memberEmail)){
+      return alert(
+        "유효한 이메일 주소를 입력해주세요."
+      );
+    }
+    sendVerifyCode()
+    alert("인증 코드 발송하였습니다.");
     setIsVerificationSent(true);
     setIsEmailVerified(false); // 재전송 시 인증 상태 초기화
     setTimer(180); // 타이머 초기화
@@ -82,29 +104,49 @@ const SignUp = () => {
       alert("인증번호를 입력해주세요.");
       return;
     }
-    // 여기다가 실서버에 API 요청 보내야됨 밑에는 임시 비밀번호
-    if (verificationCode === "123456") {
-      alert("이메일 인증이 완료되었습니다.");
-      setIsEmailVerified(true);
-    } else {
-      alert("인증번호가 올바르지 않습니다.");
+    checkVerifyCode().then(({ header }) => {
+      if (header.code[0] === "S"){
+        console.log(header);
+        alert(`${header.message}`);
+        setIsEmailVerified(true);
+      } 
+      else {
+        console.log(header);
+        alert(`${header.message}`);
+        setIsEmailVerified(false);
+      }
+    })
+    .catch(e => {
       setIsEmailVerified(false);
-    }
+      const msg = e;
+      alert(msg);
+    })
   };
 
-  const handleSignup = async (e) => {
+  const handleSignup = (e) => {
     e.preventDefault();
-
-    if (passwordError) {
-      alert("비밀번호가 일치하지 않습니다.");
+    if (!isVerifyId){
+      alert("아이디 중복확인을 해주세요.");
       return;
     }
-    if (!agreed) {
-      alert("이용약관에 동의해주세요.");
+    if (!(pwRegex.test(formData.memberPw))) {
+      alert("비밀번호를 확인해주세요.");
+      return;
+    }
+    if (!(nameRegex.test(formData.memberName))){
+      alert("이름을 다시 입력해주세요.");
+      return;
+    }
+    if (!isVerifyNickName){
+      alert("닉네임 중복확인을 해주세요.");
       return;
     }
     if (!isEmailVerified) {
       alert("이메일 인증을 완료해주세요.");
+      return;
+    }
+    if (!agreed) {
+      alert("이용약관에 동의해주세요.");
       return;
     }
     const submissionData = new FormData();
@@ -114,41 +156,71 @@ const SignUp = () => {
       }
     }
     if (profileImage) {
-      submissionData.append("profileImage", profileImage);
+      submissionData.append("memberProFiles", profileImage);
     }
-
-    try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        body: submissionData,
-      });
-      if (response.ok) {
-        alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+    signup({
+      data: submissionData,
+    }).then((res) => {
+      const { header } = res;
+      if (header.code[0] === "S") {
+        alert("회원가입이 완료 되었습니다. 로그인 페이지로 이동합니다.");
         navigate("/login");
       } else {
-        const errorData = await response.json();
-        alert(`회원가입 실패: ${errorData.message || "다시 시도해주세요."}`);
+        alert(`회원가입 실패: ErrorCode ${header.code}`);
       }
-    } catch (error) {
-      console.error("회원가입 요청 중 오류 발생:", error);
-      alert("회원가입 중 문제가 발생했습니다.");
-    }
+    }).catch((err) => {
+      alert(err);
+    })
   };
 
   const handleCheckId = () => {
-    if (!formData.id) {
-      alert("아이디를 먼저 입력해주세요.");
-      return;
+    const id = formData.memberId.trim();
+    if (!formData.memberId) {
+      return alert("아이디를 먼저 입력해주세요.");;
     }
-    alert(`'${formData.id}'는 사용 가능한 아이디입니다. (데모)`);
+    if (!idRegex.test(id)){
+      return alert(
+        "아이디는 소문자 영문과 숫자를 포함하여 4~20자 이내여야 합니다. 숫자만으로는 구성할 수 없습니다."
+      );
+    }
+    checkId().then(({ header }) => {
+      if (header.code[0] === "S"){
+        alert("사용 가능한 아이디입니다.");
+        setIsVerifyId(true);
+      } 
+      else {
+        alert(`이미 사용 중인 아이디 입니다.`);
+      }
+    })
+    .catch(e => {
+      const msg = e;
+      alert(msg);
+    })
   };
 
   const handleCheckNickname = () => {
-    if (!formData.nickname) {
-      alert("닉네임을 먼저 입력해주세요.");
+    if (!formData.memberNickName) {
+      return alert("닉네임을 먼저 입력해주세요.");;
+    }
+    if (!nickRegex.test(formData.memberNickName)){
+      alert(
+        "닉네임은 2~20자 이내의 한글, 영문, 숫자, '_', '.'만 사용할 수 있습니다."
+      );
       return;
     }
-    alert(`'${formData.nickname}'는 사용 가능한 닉네임입니다. (데모)`);
+    checkNickName().then(({ header }) => {
+      if (header.code[0] === "S"){
+        alert("사용 가능한 닉네임입니다.");
+        setIsVerifyNickName(true);
+      } 
+      else {
+        alert(`이미 사용 중인 닉네임입니다.`);
+      }
+    })
+    .catch(e => {
+      const msg = e;
+      alert(msg);
+    })
   };
 
   // 타이머 포맷팅 함수 (예: 180 -> 03:00)
@@ -160,6 +232,12 @@ const SignUp = () => {
     ).padStart(2, "0")}`;
   };
 
+  // if(loading){
+  //   return <p>로딩 페이지</p>
+  // }
+  // if(error){
+  //   return <p>Error 페이지</p>
+  // }
   return (
     <>
       <Header />
@@ -224,9 +302,9 @@ const SignUp = () => {
               <div className="flex space-x-2 mt-1">
                 <input
                   type="text"
-                  name="id"
-                  id="id"
-                  value={formData.id}
+                  name="memberId"
+                  id="memberId"
+                  value={formData.memberId}
                   onChange={handleChange}
                   required
                   className="flex-grow px-3 py-2 bg-white border-2 border-black focus:outline-none rounded-md"
@@ -250,9 +328,9 @@ const SignUp = () => {
               </label>
               <input
                 type="password"
-                name="password"
-                id="password"
-                value={formData.password}
+                name="memberPw"
+                id="memberPw"
+                value={formData.memberPw}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 mt-1 bg-white border-2 border-black focus:outline-none rounded-md"
@@ -289,13 +367,16 @@ const SignUp = () => {
               </label>
               <input
                 type="text"
-                name="name"
-                id="name"
-                value={formData.name}
+                name="memberName"
+                id="memberName"
+                value={formData.memberName}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 mt-1 bg-white border-2 border-black focus:outline-none rounded-md"
               />
+              {nameError && (
+                <p className="mt-1 text-xs text-red-500">{nameError}</p>
+              )}
             </div>
 
             <div>
@@ -308,9 +389,9 @@ const SignUp = () => {
               <div className="flex space-x-2 mt-1">
                 <input
                   type="text"
-                  name="nickname"
-                  id="nickname"
-                  value={formData.nickname}
+                  name="memberNickName"
+                  id="memberNickName"
+                  value={formData.memberNickName}
                   onChange={handleChange}
                   required
                   className="flex-grow px-3 py-2 bg-white border-2 border-black focus:outline-none rounded-md"
@@ -336,9 +417,9 @@ const SignUp = () => {
               <div className="flex space-x-2 mt-1">
                 <input
                   type="email"
-                  name="email"
-                  id="email"
-                  value={formData.email}
+                  name="memberEmail"
+                  id="memberEmail"
+                  value={formData.memberEmail}
                   onChange={handleChange}
                   required
                   disabled={isVerificationSent} // 인증번호 발송 후 수정 불가

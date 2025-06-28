@@ -29,7 +29,8 @@ const useApi = (url, options = {}, immediate = true) => {
       ...options,
       ...overrideOptions,
     };
-    axios(config).then( res => {
+    const promise = axios(config)
+      .then( res => {
           const { header: hd, body: bd } = res.data;
           if (hd.code[0] !== "S") {
             setError(hd.message);
@@ -37,14 +38,17 @@ const useApi = (url, options = {}, immediate = true) => {
             setHeader(hd);
             setBody(bd);
           }
+          return res.data;
         })
-        .catch(error => {
-          console.error(error);
-          setError(error.response.data);
+        .catch(err => {
+          const msg =
+          err.response?.data?.header?.message ||
+          err.response?.data?.message ||
+          err.message;
+          setError(err);
         })
-        .finally(() => {
-          setLoading(false);
-        });
+    promise.finally(() => setLoading(false));
+    return promise;
   };
 
   useEffect(() => {
