@@ -3,7 +3,6 @@ import "./App.css";
 import { Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./provider/AuthContext";
 import Main from "./pages/UserInterface/Main/Main";
-import Openinghours from "./pages/UserInterface/Openinghours/Openinghours";
 import Reservation from "./pages/UserInterface/Reservation/Reservation";
 import Settings from "./pages/UserInterface/Reservation/Settings";
 import ChattingBtn from "./pages/UserInterface/Chatting/ChattingBtn";
@@ -13,6 +12,7 @@ import MyPage from "./pages/UserInterface/MyPage/MyPage";
 import Login from "./pages/UserInterface/Login/Login";
 import SignUp from "./pages/UserInterface/Login/SignUp";
 import InsertReviewPage from "./pages/UserInterface/Review/InsertReviewPage";
+import Operatinghours from "./pages/UserInterface/Operatinghours/Operatinghours";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -28,7 +28,7 @@ function App() {
             path="/reviews/:restaurant_no"
             element={<InsertReviewPage />}
           />
-          <Route path="/openinghours" element={<Openinghours />} />
+          <Route path="/operatinghours" element={<Operatinghours />} />
           <Route path="/reservation" element={<Reservation />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/mypage" element={<MyPage />} />

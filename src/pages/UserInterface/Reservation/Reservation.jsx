@@ -4,6 +4,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import useApi from "../../../hooks/useApi";
 import {
   CloseBtn,
   CountBox,
@@ -45,7 +46,23 @@ const Reservation = () => {
     "19:00",
     "20:00",
   ]);
+  const { header, body, error, loading, refetch } = useApi(
+    "/api/reservation",
+    {
+      method: "post",
+    },
+    false
+  );
 
+  const handleSubmit = () => {
+    refetch({
+      data: {
+        selectedDate: selectedDate,
+        selectedCount: selectedCount,
+        selectedTime: selectedTime,
+      },
+    });
+  };
   return (
     <>
       {reservationModal && (
@@ -119,7 +136,7 @@ const Reservation = () => {
               </ModalRight>
             </ModalContent>
             <ModalFooter>
-              <EnrollButton>등록하기</EnrollButton>
+              <EnrollButton onClick={handleSubmit}>등록하기</EnrollButton>
             </ModalFooter>
           </ModalLabel>
         </ModalWrapper>
