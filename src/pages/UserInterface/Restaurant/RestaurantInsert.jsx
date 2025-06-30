@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-const MAIN_CATEGORIES = ["한식", "중식", "일식"];
-const TAG_CATEGORIES = [
-  "양식",
-  "피자",
-  "바베큐",
-  "카페",
-  "분위기 좋은",
-  "가성비",
-];
+const MAIN_CATEGORIES = ["한식", "중식", "일식", "양식"];
+const TAG_CATEGORIES = ["피자", "바베큐", "카페", "분위기 좋은", "가성비"];
 
 const RestaurantInsert = () => {
   const [formData, setFormData] = useState({
@@ -32,7 +25,37 @@ const RestaurantInsert = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    // 입력 필드의 name이 'storePhone'일 경우
+    if (name === "storePhone") {
+      const cleaned = value.replace(/[^0-9]/g, "");
+      let formatted = "";
+      if (cleaned.startsWith("02")) {
+        if (cleaned.length <= 2) {
+          formatted = cleaned;
+        } else if (cleaned.length <= 6) {
+          formatted = `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
+        } else {
+          formatted = `${cleaned.slice(0, 2)}-${cleaned.slice(
+            2,
+            6
+          )}-${cleaned.slice(6, 10)}`;
+        }
+      } else {
+        if (cleaned.length <= 3) {
+          formatted = cleaned;
+        } else if (cleaned.length <= 7) {
+          formatted = `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+        } else {
+          formatted = `${cleaned.slice(0, 3)}-${cleaned.slice(
+            3,
+            7
+          )}-${cleaned.slice(7, 11)}`;
+        }
+      }
+      setFormData((prev) => ({ ...prev, [name]: formatted }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleTagChange = (e) => {
@@ -55,15 +78,27 @@ const RestaurantInsert = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.mainCategory) {
-      alert("대분류를 선택해주세요.");
-      return;
-    }
-
-    if (selectedTags.length === 0) {
-      alert("태그를 1개 이상 선택해주세요.");
-      return;
+    switch (true) {
+      case !formData.mainCategory:
+        alert("대분류를 선택해주세요.");
+        return;
+      case selectedTags.length === 0:
+        alert("태그를 1개 이상 선택해주세요.");
+        return;
+      case !formData.storePhone:
+        alert("전화번호를 입력해주세요.");
+        return;
+      case !formData.storeName:
+        alert("가게 이름을 입력해주세요.");
+        return;
+      case !formData.address:
+        alert("주소를 입력해주세요.");
+        return;
+      case !formData.storeDescription:
+        alert("가게 설명을 입력해주세요.");
+        return;
+      default:
+        break;
     }
 
     const submissionData = new FormData();
@@ -117,35 +152,43 @@ const RestaurantInsert = () => {
   useEffect(() => {
     if (!isPostcodeOpen) return;
     const elementWrap = document.getElementById("postcode-wrap");
+    const processAddressData = (data) => {
+      const { zonecode, jibunAddress, bcode, sigunguCode } = data;
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      geocoder.addressSearch(jibunAddress, (result, status) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          setFormData((prev) => ({
+            ...prev,
+            postcode: zonecode,
+            address: jibunAddress,
+            siCode: sigunguCode.substring(0, 2),
+            sigunguCode: sigunguCode,
+            emdCode: bcode,
+            latitude: result[0].y,
+            longitude: result[0].x,
+          }));
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            postcode: zonecode,
+            address: jibunAddress,
+            siCode: sigunguCode.substring(0, 2),
+            sigunguCode: sigunguCode,
+            emdCode: bcode,
+          }));
+        }
+      });
+      setIsPostcodeOpen(false);
+    };
+
     new window.daum.Postcode({
       oncomplete: (data) => {
-        const { zonecode, roadAddress, jibunAddress, bcode, sigunguCode } =
-          data;
-        const geocoder = new window.kakao.maps.services.Geocoder();
-        geocoder.addressSearch(roadAddress, (result, status) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            setFormData((prev) => ({
-              ...prev,
-              postcode: zonecode,
-              address: jibunAddress,
-              siCode: sigunguCode.substring(0, 2),
-              sigunguCode: sigunguCode,
-              emdCode: bcode,
-              latitude: result[0].y,
-              longitude: result[0].x,
-            }));
-          } else {
-            setFormData((prev) => ({
-              ...prev,
-              postcode: zonecode,
-              address: jibunAddress,
-              siCode: sigunguCode.substring(0, 2),
-              sigunguCode: sigunguCode,
-              emdCode: bcode,
-            }));
-          }
-        });
-        setIsPostcodeOpen(false);
+        if (data.userSelectedType === "J" || data.autoJibunAddress) {
+          const finalJibunAddress = data.jibunAddress || data.autoJibunAddress;
+          processAddressData({ ...data, jibunAddress: finalJibunAddress });
+        } else {
+          // 예외 처리 입니다.
+        }
       },
       width: "100%",
       height: "100%",
