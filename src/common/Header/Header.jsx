@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import logoImage from "/src/assets/rog.png";
-
+import { AuthContext } from "../../provider/AuthContext";
 const Header = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-    }
-  }, []);
-
+  const { auth, logout } = useContext(AuthContext);
   const handleLogoClick = () => {
     navigate("/");
   };
 
   const handleAuthClick = () => {
-    if (isLoggedIn) {
+    if (auth.isAuthenticated) {
       navigate("/mypage");
     } else {
       navigate("/login");
+    }
+  };
+  const handleLogoutClick = () => {
+    if (auth.isAuthenticated) {
+      logout();
+    } else {
+      navigate("/sign-up");
     }
   };
 
@@ -38,12 +38,22 @@ const Header = () => {
       <div>
         <div></div>
       </div>
-      <div>
-        <div
-          onClick={handleAuthClick}
-          className="mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors"
-        >
-          {isLoggedIn ? "마이 페이지" : "로그인"}
+      <div className="button-area flex items-center space-x-4">
+        <div>
+          <div
+            onClick={handleAuthClick}
+            className="mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors"
+          >
+            {auth.isAuthenticated ? "마이 페이지" : "로그인"}
+          </div>
+        </div>
+        <div>
+          <div
+            onClick={handleLogoutClick}
+            className="mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors"
+          >
+            {auth.isAuthenticated ? "로그아웃" : "회원가입"}
+          </div>
         </div>
       </div>
     </header>
