@@ -109,7 +109,7 @@ function ReviewPage({ restaurantNo }) {
   }, [focusReviewTextarea]);
 
   return (
-    <div className="w-full mx-auto bg-gray-50 min-h-screen font-sans space-y-6">
+    <div className="w-full max-w-[900px] mx-auto bg-gray-50 min-h-screen font-sans space-y-6">
       <MyReview
         reviews={myReviews}
         onWriteReview={handleWriteReview}
