@@ -1,42 +1,54 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+import { useState, useMemo, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AuthContext from "../../../provider/AuthContext";
-import ReviewItem from "../../../components/ReviewItem";
-import SortSelector from "../../../components/SortSelector";
-import Pagination from "../../../common/Pagination/Pagination";
-import MyReview from "../../../components/MyReview";
+import ReviewItem from "../../../components/review/ReviewItem";
+import SortSelector from "../../../components/review/SortSelector";
+import Pagination from "../../../components/Pagination/Pagination";
+import MyReview from "../../../components/review/MyReview";
+import useApi from "../../../hooks/useApi";
+import InsertReviewPage from "./InsertReviewPage";
 
 function ReviewPage({ restaurantNo }) {
   const navigate = useNavigate();
   const { auth } = useContext(AuthContext);
   const user = auth.loginInfo;
 
-  const [reviews, setReviews] = useState([]);
+  const itemsPerPage = 3;
   const [sortKey, setSortKey] = useState("ratingDesc");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const [focusReviewTextarea, setFocusReviewTextarea] = useState(false);
 
-  useEffect(() => {
-    if (!restaurantNo) return;
+  const {
+    body: reviews = [],
+    loading,
+    error,
+    refetch,
+  } = useApi(`/api/reviews?restaurantNo=${restaurantNo}`, {}, !!restaurantNo);
 
-    axios
-      .get("/api/reviews", { params: { restaurantNo } })
-      .then((response) => {
-        setReviews(response.data);
-      })
-      .catch((error) => {
-        console.error("리뷰 로딩 실패", error);
-      });
-  }, [restaurantNo]);
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
+  const myReviews = safeReviews.filter(
+    (r) => user && r.memberNo === user.memberNo
+  );
+  const otherReviews = safeReviews.filter(
+    (r) => !user || r.memberNo !== user.memberNo
+  );
 
-  const myReviews = reviews.filter((r) => r.memberNo === user.memberNo);
-  const otherReviews = reviews.filter((r) => r.memberNo !== user.memberNo);
+  const sortedReviews = useMemo(() => {
+    switch (sortKey) {
+      case "ratingAsc":
+        return [...otherReviews].sort((a, b) => a.reviewScore - b.reviewScore);
+      case "ratingDesc":
+        return [...otherReviews].sort((a, b) => b.reviewScore - a.reviewScore);
+      default:
+        return otherReviews;
+    }
+  }, [otherReviews, sortKey]);
 
   const pagedReviews = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return otherReviews.slice(start, start + itemsPerPage);
-  }, [otherReviews, currentPage]);
+    return sortedReviews.slice(start, start + itemsPerPage);
+  }, [sortedReviews, currentPage]);
 
   const totalItems = otherReviews.length;
 
@@ -44,15 +56,6 @@ function ReviewPage({ restaurantNo }) {
     boardNoPerPage: itemsPerPage,
     totalBoardNo: totalItems,
     pageSize: 5,
-  };
-
-  const handleWriteReview = () => {
-    if (!auth.isAuthenticated) {
-      alert("로그인이 안되어 있습니다. 로그인 페이지로 이동합니다.");
-      navigate("/login");
-    } else {
-      navigate(`/reviews/restaurantNo=${restaurantNo}`);
-    }
   };
 
   const handleEditReview = (review) => {
@@ -68,31 +71,45 @@ function ReviewPage({ restaurantNo }) {
     if (!auth.isAuthenticated) {
       alert("로그인 후 삭제가 가능합니다.");
       navigate("/login");
-    } else {
-      const confirmDelete = window.confirm("정말 삭제하시겠습니까?");
-      if (confirmDelete) {
-        axios
-          .delete(`/api/reviews/${reviewNo}`, {
-            headers: {
-              Authorization: `Bearer ${auth.tokens.accessToken}`,
-            },
-          })
-          .then(() => {
-            alert("리뷰가 삭제되었습니다.");
-            setReviews((prevReviews) =>
-              prevReviews.filter((review) => review.reviewNo !== reviewNo)
-            );
-          })
-          .catch((error) => {
-            alert("리뷰 삭제 실패");
-            console.error("리뷰 삭제 오류:", error);
-          });
-      }
+      return;
     }
+
+    const confirmDelete = window.confirm("정말 삭제하시겠습니까?");
+    if (!confirmDelete) return;
+
+    axios
+      .delete(`/api/reviews/${reviewNo}`, {
+        headers: {
+          Authorization: `Bearer ${auth.tokens.accessToken}`,
+        },
+      })
+      .then(() => {
+        alert("리뷰가 삭제되었습니다.");
+        refetch();
+      })
+      .catch((error) => {
+        alert("리뷰 삭제 실패");
+        console.error("리뷰 삭제 오류:", error);
+      });
   };
 
+  const handleWriteReview = () => {
+    if (!auth.isAuthenticated) {
+      alert("로그인 후 리뷰 작성이 가능합니다.");
+      navigate("/login");
+      return;
+    }
+    setFocusReviewTextarea(true);
+  };
+
+  useEffect(() => {
+    if (focusReviewTextarea) {
+      setFocusReviewTextarea(false);
+    }
+  }, [focusReviewTextarea]);
+
   return (
-    <div className="max-w-5xl mx-auto p-4 space-y-6 bg-gray-100 min-h-screen">
+    <div className="w-full mx-auto bg-gray-50 min-h-screen font-sans space-y-6">
       <MyReview
         reviews={myReviews}
         onWriteReview={handleWriteReview}
@@ -100,16 +117,14 @@ function ReviewPage({ restaurantNo }) {
         onDeleteReview={handleDeleteReview}
       />
 
-      {auth.isAuthenticated && (
-        <div className="text-center">
-          <button
-            onClick={handleWriteReview}
-            className="mt-4 bg-blue-600 text-white py-2 px-6 rounded-2xl hover:bg-blue-700"
-          >
-            리뷰 작성하기
-          </button>
-        </div>
-      )}
+      <InsertReviewPage
+        restaurantId={restaurantNo}
+        onSubmitSuccess={() => {
+          refetch();
+          setCurrentPage(1);
+        }}
+        focusReviewTextarea={focusReviewTextarea}
+      />
 
       {totalItems === 0 ? (
         <div className="text-center bg-gray-200 rounded text-gray-500 py-10">

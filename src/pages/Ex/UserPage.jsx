@@ -2,7 +2,7 @@ import useApi from "../../hooks/useApi";
 
 const UserPage = () => {
 
-  const { header, body, error, loading } = useApi('/api/test/users', { method: 'post'});
+  const { header, body, error, loading } = useApi('/api/test/users', { method: 'post', data: { email: 'daewook@naver.com'}});
 
   if (loading) return <p>불러오는 중...</p>;
   if (error) return <p style={{color: 'red'}}>
