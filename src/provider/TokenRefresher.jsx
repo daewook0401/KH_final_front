@@ -1,12 +1,10 @@
 import { useEffect, useContext } from "react";
 import useApi from "../hooks/useApi";
 import AuthContext from "./AuthContext";
-import Cookies from "js-cookie";
 
 function TokenRefresher() {
-  const { login, logout, setAuth } = useContext(AuthContext);
-  const refreshToken = Cookies.get("Refresh-Token");
-  if (!refreshToken) return null;
+  const { login, logout, loggingOut } = useContext(AuthContext);
+  
   // useApi 셋업: 즉시 호출하지 않도록 immediate = false
   const {
     header: tokenHeader,
@@ -14,11 +12,14 @@ function TokenRefresher() {
     error,
     loading,
     refetch: refresh,
-  } = useApi("/api/auth/refresh", { method: "post", headers: { Authorization: `Bearer ${refreshToken}`} }, false);
+  } = useApi("/api/auth/refresh", { method: "post", headers: { Authorization: `Bearer ${sessionStorage.getItem("refreshToken")}`}, withCredentials: true }, false);
 
   // 1) 컴포넌트 마운트 시 자동으로 토큰 갱신 시도
   useEffect(() => {
-    refresh();
+    console.log(loggingOut);
+    if (!loggingOut){
+      refresh();
+    }
   }, [refresh]);
 
   // 2) refresh() 호출 후 결과 처리

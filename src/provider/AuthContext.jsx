@@ -7,6 +7,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(true);
   const [auth, setAuth] = useState({
     loginInfo: null,
     tokens: null,
@@ -14,43 +15,30 @@ export const AuthProvider = ({ children }) => {
     socialLoginState: false,
     longTimeAuth: false,
   });
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const loginInfo = JSON.parse(sessionStorage.getItem("loginInfo"));
-    const tokens = sessionStorage.getItem("refreshToken");
-    const hasCookie = !!cookies.get("Refresh-Token");
-    if (hasCookie && !sessionStorage.getItem("refreshToken")){
-      return;
-    } else if (loginInfo && tokens && auth.longTimeAuth){
-      setAuth({
-        loginInfo,
-        tokens,
-        isAuthenticated: true,
-        socialLoginState: false,
-        longTimeAuth: true,
-      });
-    } else if (loginInfo && tokens && auth.socialLoginState) {
-      setAuth({
-        loginInfo,
-        tokens,
-        isAuthenticated: true,
-        socialLoginState: true,
-        longTimeAuth: true,
-      });
-    } else if (loginInfo && tokens) {
-      setAuth({
-        loginInfo,
-        tokens,
-        isAuthenticated: true,
-        socialLoginState: false,
-        longTimeAuth: false,
-      });
-    }
-  }, []);
+      axios.post("/api/auth/refresh", {}, { headers: { Authorization: `Bearer ${sessionStorage.getItem("refreshToken")}` },
+            withCredentials: true })
+        .then(res => {
+          if (res.data.header.code[0] === 'S'){
+            login(res.data.body.items.loginInfo, res.data.body.items.tokens, false, true);
+          }})
+        .catch(err => {
+          if (err.response?.status === 401) {
+            setAuth();
+          }
+        }).finally(()=>{
+          setReady(true);
+        })
+      }, []);
+
 
   const login = (loginInfo, tokens, socialLogin = false, longTimeAuth = false) => {
+    console.log("login");
+    setLoggingOut(false);
     setAuth({
-      loginInfo,
-      tokens,
+      loginInfo: loginInfo,
+      tokens: tokens,
       isAuthenticated: true,
       socialLoginState: socialLogin, 
       longTimeAuth: longTimeAuth
@@ -59,15 +47,12 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.setItem("refreshToken", tokens.refreshToken);
     sessionStorage.setItem("accessToken", tokens.accessToken);
     sessionStorage.setItem("socialLoginState", JSON.stringify(socialLogin));
-    if (longTimeAuth){
-      cookies.set("Refresh-Token", tokens.refreshToken, {expires:30})
-    }
   };
 
   const logout = () => {
-    axios.delete("/api/auth/logout", { headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` }
+    setLoggingOut(true);
+    axios.delete("/api/auth/logout", { headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`}, withCredentials: true
     }).then(( wrap ) => {
-      console.log(wrap);
       const header = wrap.data.header;
       if (header.code[0] === 'S'){
         alert("로그아웃에 되었습니다.")
@@ -76,24 +61,27 @@ export const AuthProvider = ({ children }) => {
       }
     }).catch(err =>{
       alert(err);
+    }).finally(() =>{
+      sessionStorage.clear();
+      setAuth({
+        loginInfo: null,
+        tokens: null,
+        isAuthenticated: false,
+        socialLoginState: false,
+        longTimeAuth: false,
+      });
+      sessionStorage.removeItem("loginInfo");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("socialLoginState");
+      setLoggingOut(false);
     })
-    setAuth({
-      loginInfo: null,
-      tokens: null,
-      isAuthenticated: false,
-      socialLoginState: false,
-      longTimeAuth: false,
-    });
-    sessionStorage.removeItem("loginInfo");
-    sessionStorage.removeItem("refreshToken");
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("socialLoginState");
-    cookies.remove('Refresh-Token');
   };
-
+  if (!ready){
+    return <div>로딩 중</div>
+  }
   return (
-    <AuthContext.Provider value={{ auth, login, logout }}>
-      {!!cookies.get("Refresh-Token") && !sessionStorage.getItem("refreshToken") && <TokenRefresher />}
+    <AuthContext.Provider value={{loggingOut, auth, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

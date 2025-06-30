@@ -4,7 +4,6 @@ import logoImage from "/src/assets/rog.png";
 import { AuthContext } from "../../provider/AuthContext";
 const Header = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { auth, logout } = useContext(AuthContext);
   const handleLogoClick = () => {
     navigate("/");

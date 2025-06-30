@@ -9,11 +9,12 @@ const Login = () => {
   const [formData, setFormData] = useState({
     memberId: "",
     memberPw: "",
+    authLogin: "N",
   });
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   const [longTimeAuth, setLongTimeAuth] = useState(false);
-  const {header:loginHeader, body:loginBody, error : loginError, loading : loginLoading, refetch: loginApi} = useApi('/api/auth/tokens', { method: 'post', data: { memberId : formData.memberId, memberPw: formData.memberPw}}, false);
+  const {header:loginHeader, body:loginBody, error : loginError, loading : loginLoading, refetch: loginApi} = useApi('/api/auth/tokens', { method: 'post' }, false);
   const handleChange = (e) => {
   const { name, value } = e.target;
   setFormData((prev) => ({
@@ -25,16 +26,21 @@ const Login = () => {
   };
   const handleLogin = (e) => {
     e.preventDefault();
-    const { memberId, memberPw } = formData;
-
+    const { memberId, memberPw, authLogin} = formData;
+    
     if (!idRegex.test(memberId)){
       return;
     }
     if (!pwRegex.test(memberPw)){
       return;
     }
-    console.log(formData.memberId, formData.memberPw);
-    loginApi().then(({ header, body }) => {
+    console.log(formData.memberId, formData.memberPw, longTimeAuth);
+    const authLoginValue = longTimeAuth ? "Y" : "N";
+    console.log(formData);
+    loginApi({
+      withCredentials: true,
+      data: { memberId : memberId, memberPw: memberPw, authLogin: authLoginValue}
+    }).then(({ header, body }) => {
       if (header.code[0] === "S") {
         if (body.items.loginInfo.isActive === 'N'){
           alert("비활성화된 계정이거나 정지된 계정입니다.");
