@@ -1,7 +1,7 @@
 import { useState, useMemo, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import AuthContext from "../../../provider/AuthContext";
+import { AuthContext } from "../../../provider/AuthContext";
 import ReviewItem from "../../../components/review/ReviewItem";
 import SortSelector from "../../../components/review/SortSelector";
 import Pagination from "../../../components/Pagination/Pagination";

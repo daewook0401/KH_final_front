@@ -3,7 +3,7 @@ import useApi from "../../../hooks/useApi";
 import InputScore from "../../../components/review/InputScore";
 import ImageUploader from "../../../components/review/ImageUploader";
 import InputReviewContent from "../../../components/review/InputReviewContent";
-import AuthContext from "../../../provider/AuthContext";
+import { AuthContext } from "../../../provider/AuthContext";
 import { useNavigate } from "react-router-dom";
 function InsertReviewPage({
   restaurantId,
