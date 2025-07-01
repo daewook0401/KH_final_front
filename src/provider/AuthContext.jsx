@@ -1,13 +1,13 @@
 import { useState, useEffect, createContext, Children } from "react";
 import { useNavigate } from "react-router-dom";
 import cookies from "js-cookie";
-import TokenRefresher from "./TokenRefresher";
 import axios from "../api/AxiosInterCeptor"
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-  const [loggingOut, setLoggingOut] = useState(true);
   const [auth, setAuth] = useState({
     loginInfo: null,
     tokens: null,
@@ -31,11 +31,14 @@ export const AuthProvider = ({ children }) => {
           setReady(true);
         })
       }, []);
-
+  useEffect(() => {
+    if (auth.socialLoginState && auth.loginInfo.isModify !== null &&  auth.loginInfo.isModify === "N"){
+      navigate("/social-info");
+    }
+  }, [])
 
   const login = (loginInfo, tokens, socialLogin = false, longTimeAuth = false) => {
     console.log("login");
-    setLoggingOut(false);
     setAuth({
       loginInfo: loginInfo,
       tokens: tokens,
@@ -50,7 +53,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setLoggingOut(true);
     axios.delete("/api/auth/logout", { headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`}, withCredentials: true
     }).then(( wrap ) => {
       const header = wrap.data.header;
@@ -81,9 +83,12 @@ export const AuthProvider = ({ children }) => {
     return <div>로딩 중</div>
   }
   return (
-    <AuthContext.Provider value={{loggingOut, auth, login, logout }}>
+    <GoogleOAuthProvider clientId=
+    "1070671526490-nke8ohh1a4dc3kg5hesdof5t6cdq8v2j.apps.googleusercontent.com">
+    <AuthContext.Provider value={{auth, login, logout }}>
       {children}
     </AuthContext.Provider>
+    </GoogleOAuthProvider>
   );
 };
 export default AuthContext;
