@@ -13,6 +13,8 @@ function ReviewPage({ restaurantNo }) {
   const navigate = useNavigate();
   const { auth } = useContext(AuthContext);
   const user = auth.loginInfo;
+  const roles = user?.roles || [];
+  const isAdmin = roles.includes("ROLE_ADMIN");
 
   const itemsPerPage = 3;
   const [sortKey, setSortKey] = useState("ratingDesc");
@@ -144,8 +146,11 @@ function ReviewPage({ restaurantNo }) {
             <ReviewItem
               key={review.reviewNo}
               review={review}
-              onEdit={() => handleEditReview(review)}
-              onDelete={() => handleDeleteReview(review.reviewNo)}
+              isMyReview={
+                user && (review.memberNo === user.memberNo || isAdmin)
+              }
+              onEdit={handleEditReview}
+              onDelete={handleDeleteReview}
             />
           ))}
 

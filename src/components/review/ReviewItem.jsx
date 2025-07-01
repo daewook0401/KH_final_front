@@ -6,7 +6,6 @@ function ReviewItem({ review, isMyReview = false, onEdit, onDelete }) {
     <div className="bg-white border border-gray-200 rounded-xl shadow p-5 space-y-3">
       <div className="flex justify-between items-center">
         <div className="font-medium text-gray-900">{review.memberNickname}</div>
-
         <div className="text-sm text-gray-500">
           {new Date(review.createDate).toLocaleDateString()}
         </div>

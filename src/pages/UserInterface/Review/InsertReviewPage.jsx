@@ -3,6 +3,7 @@ import useApi from "../../../hooks/useApi";
 import InputScore from "../../../components/review/InputScore";
 import ImageUploader from "../../../components/review/ImageUploader";
 import InputReviewContent from "../../../components/review/InputReviewContent";
+import BillVerification from "../../../components/review/BillVerification";
 import { AuthContext } from "../../../provider/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -15,8 +16,10 @@ function InsertReviewPage({
 }) {
   const [score, setScore] = useState(0);
   const [content, setContent] = useState("");
-
   const [images, setImages] = useState([]);
+  const [showBillModal, setShowBillModal] = useState(false);
+  const [pendingSubmission, setPendingSubmission] = useState(false);
+
   const reviewTextareaRef = useRef(null);
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -42,8 +45,7 @@ function InsertReviewPage({
     if (editReview) {
       setScore(editReview.reviewScore);
       setContent(editReview.reviewContent);
-
-      if (editReview.photos && editReview.photos.length > 0) {
+      if (editReview.photos?.length > 0) {
         const existingImages = editReview.photos.map((photo) => ({
           type: "existing",
           url: photo.reviewPhotoUrl,
@@ -74,40 +76,50 @@ function InsertReviewPage({
     }
   };
 
+  const handleFinalSubmit = () => {
+    const formData = new FormData();
+    formData.append("restaurantNo", restaurantId);
+    formData.append("reviewScore", score);
+    formData.append("reviewContent", content);
+    formData.append("memberNickname", memberNickname);
+
+    images.forEach((image) => {
+      if (image.type === "new") {
+        formData.append("images", image.file);
+      }
+    });
+
+    submitReview({
+      data: formData,
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+      .then(() => {
+        alert(editReview ? "리뷰가 수정되었습니다!" : "리뷰가 등록되었습니다!");
+        setScore(0);
+        setContent("");
+        setImages([]);
+        cancelEdit?.();
+        onSubmitSuccess?.();
+      })
+      .catch((err) => {
+        console.error("리뷰 제출 오류:", err.response?.data || err.message);
+        alert("리뷰 작성 중 문제가 발생했습니다.");
+      });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     requireLogin(() => {
-      const formData = new FormData();
-      formData.append("restaurantNo", restaurantId);
-      formData.append("reviewScore", score);
-      formData.append("reviewContent", content);
-      formData.append("memberNickname", memberNickname);
-
-      images.forEach((image) => {
-        if (image.type === "new") {
-          formData.append("images", image.file);
-        }
-      });
-
-      submitReview({
-        data: formData,
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-        .then(() => {
-          alert(
-            editReview ? "리뷰가 수정되었습니다!" : "리뷰가 등록되었습니다!"
-          );
-          setScore(0);
-          setContent("");
-          setImages([]);
-          cancelEdit?.();
-          onSubmitSuccess?.();
-        })
-        .catch((err) => {
-          console.error("리뷰 제출 오류:", err.response?.data || err.message);
-          alert("리뷰 작성 중 문제가 발생했습니다.");
-        });
+      setShowBillModal(true);
+      setPendingSubmission(true);
     });
+  };
+
+  const handleVerificationSuccess = () => {
+    if (pendingSubmission) {
+      setPendingSubmission(false);
+      handleFinalSubmit();
+    }
   };
 
   return (
@@ -137,6 +149,7 @@ function InsertReviewPage({
               </button>
             )}
           </div>
+
           <div className="flex justify-end">
             <button
               type="submit"
@@ -146,6 +159,7 @@ function InsertReviewPage({
               {loading ? "처리 중..." : editReview ? "수정 완료" : "리뷰 등록"}
             </button>
           </div>
+
           {error && (
             <p className="text-red-500">
               오류가 발생했습니다. 다시 시도해주세요.
@@ -153,6 +167,15 @@ function InsertReviewPage({
           )}
         </form>
       </div>
+
+      <BillVerification
+        isOpen={showBillModal}
+        onClose={() => {
+          setShowBillModal(false);
+          setPendingSubmission(false);
+        }}
+        onVerified={handleVerificationSuccess}
+      />
     </div>
   );
 }
