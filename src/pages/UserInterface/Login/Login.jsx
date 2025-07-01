@@ -4,6 +4,9 @@ import Header from "../../../common/Header/Header"; // 이 컴포넌트는 사�
 import useApi from "../../../hooks/useApi";
 import { idRegex, pwRegex } from "../../../components/Regex";
 import { AuthContext } from "../../../provider/AuthContext";
+import { GoogleLogin } from '@react-oauth/google';
+import  { GoogleSignInButton, KakaoSignInButton } from "../../../components/Button/SocialButton"
+import {CustomGoogleLoginForm} from "../../../components/Button/CustomLoginForm";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -55,11 +58,7 @@ const Login = () => {
       alert(err);
     })
   }
-  const handleSocialLogin = (provider) => {
-    alert(
-      `${provider} 로그인은 현재 데모 상태입니다. 실제 구현 시에는 해당 소셜 로그인 API를 사용해야 합니다.`
-    );
-  };
+
 
   return (
     <>
@@ -69,20 +68,10 @@ const Login = () => {
           <h1 className="text-2xl font-bold text-center text-red-500">
             로그인
           </h1>
-
-          <div className="space-y-2">
-            <button
-              onClick={() => handleSocialLogin("kakao")}
-              className="w-full py-3 font-bold text-black bg-yellow-400 rounded-md"
-            >
-              카카오 로그인
-            </button>
-            <button
-              onClick={() => handleSocialLogin("google")}
-              className="w-full py-3 font-bold text-white bg-blue-500 rounded-md"
-            >
-              구글 로그인
-            </button>
+          <div className="flex flex-col justify-center-safe space-y-2">
+            <KakaoSignInButton />
+            <CustomGoogleLoginForm />
+            <GoogleLogin />
           </div>
 
           <div className="my-4"></div>
