@@ -65,22 +65,6 @@ const Settings = () => {
     return `${hours}:${minutes}`;
   };
 
-  const handleStartTime = (startTime, day) => {
-    if (startTime.getMinutes() % 10 === 0) {
-      setReservationTimeInfo((prev) =>
-        prev.map((info, index) =>
-          index === day
-            ? {
-                ...info,
-                startTime: parseDateToTimeString(startTime),
-              }
-            : info
-        )
-      );
-    } else {
-      alert("10분 단위로만 선택할 수 있습니다.");
-    }
-  };
   const handleEndTime = (endTime, day) => {
     if (endTime.getMinutes() % 10 === 0) {
       setReservationTimeInfo((prev) =>

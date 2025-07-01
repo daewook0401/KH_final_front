@@ -57,9 +57,10 @@ const Reservation = () => {
   const handleSubmit = () => {
     refetch({
       data: {
-        selectedDate: selectedDate,
-        selectedCount: selectedCount,
-        selectedTime: selectedTime,
+        restaurantNo: "2",
+        reserveDay: selectedDate,
+        numberofGuests: selectedCount,
+        reserveTime: selectedTime,
       },
     });
   };
