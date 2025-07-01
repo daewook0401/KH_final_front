@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-
-const MAIN_CATEGORIES = ["한식", "중식", "일식", "양식"];
-const TAG_CATEGORIES = ["피자", "바베큐", "카페", "분위기 좋은", "가성비"];
+// 1. useApi 훅을 import 합니다.
+import useApi from "../../../hooks/useApi"; // useApi 훅의 실제 경로로 수정해주세요.
+import TagSelector from "../../../components/Restaurants/TagSelector";
+import {
+  MAIN_CATEGORIES,
+  TAG_CATEGORIES,
+} from "../../../components/Restaurants/TagList";
 
 const RestaurantInsert = () => {
   const [formData, setFormData] = useState({
@@ -23,9 +27,15 @@ const RestaurantInsert = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [isPostcodeOpen, setIsPostcodeOpen] = useState(false);
 
+  // 2. useApi 훅을 설정합니다.
+  const {
+    loading,
+    error,
+    refetch: registerRestaurant,
+  } = useApi("/api/stores/register", { method: "POST" }, false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // 입력 필드의 name이 'storePhone'일 경우
     if (name === "storePhone") {
       const cleaned = value.replace(/[^0-9]/g, "");
       let formatted = "";
@@ -58,13 +68,8 @@ const RestaurantInsert = () => {
     }
   };
 
-  const handleTagChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setSelectedTags((prev) => [...prev, value]);
-    } else {
-      setSelectedTags((prev) => prev.filter((tag) => tag !== value));
-    }
+  const handleTagSelectionChange = (newTags) => {
+    setSelectedTags(newTags);
   };
 
   const handleImageChange = (e) => {
@@ -76,6 +81,7 @@ const RestaurantInsert = () => {
     }
   };
 
+  // 3. handleSubmit 함수를 useApi 훅을 사용하도록 수정합니다.
   const handleSubmit = async (e) => {
     e.preventDefault();
     switch (true) {
@@ -125,29 +131,27 @@ const RestaurantInsert = () => {
       submissionData.append("restaurantMainPhoto", imageFile);
     }
 
-    console.log(" 서버로 전송될 최종 데이터 (FormData):");
-    for (let [key, value] of submissionData.entries()) {
-      console.log(`  ${key}:`, value);
-    }
-
-    try {
-      const response = await fetch("/api/stores/register", {
-        method: "POST",
-        body: submissionData,
-      });
-      if (response.ok) {
-        const result = await response.json();
+    registerRestaurant({
+      data: submissionData,
+    }).then((response) => {
+      if (response) {
         alert("맛집이 성공적으로 등록되었습니다!");
-        console.log("✅ 등록 완료:", result);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "등록에 실패했습니다.");
+        console.log("✅ 등록 완료:", response.body);
+        // 성공 후 폼 초기화 또는 페이지 이동 로직 추가 가능
       }
-    } catch (error) {
-      console.error(" 등록 에러:", error);
-      alert(error.message);
-    }
+    });
   };
+
+  // 4. 에러 처리를 위한 useEffect 추가
+  useEffect(() => {
+    if (error) {
+      const message =
+        error.response?.data?.header?.message ||
+        error.message ||
+        "등록 중 오류가 발생했습니다.";
+      alert(message);
+    }
+  }, [error]);
 
   useEffect(() => {
     if (!isPostcodeOpen) return;
@@ -186,26 +190,12 @@ const RestaurantInsert = () => {
         if (data.userSelectedType === "J" || data.autoJibunAddress) {
           const finalJibunAddress = data.jibunAddress || data.autoJibunAddress;
           processAddressData({ ...data, jibunAddress: finalJibunAddress });
-        } else {
-          // 예외 처리 입니다.
         }
       },
       width: "100%",
       height: "100%",
     }).embed(elementWrap);
   }, [isPostcodeOpen]);
-
-  useEffect(() => {
-    console.log(" formData가 변경되었습니다:", formData);
-  }, [formData]);
-  useEffect(() => {
-    console.log(" 선택된 태그:", selectedTags);
-  }, [selectedTags]);
-  useEffect(() => {
-    if (imageFile) {
-      console.log(" 선택된 이미지 파일:", imageFile);
-    }
-  }, [imageFile]);
 
   return (
     <div className="max-w-[600px] my-5 mx-auto p-8 border border-gray-200 rounded-lg font-sans">
@@ -325,24 +315,14 @@ const RestaurantInsert = () => {
 
         <div className="mb-5">
           <label className="block mb-2 font-semibold text-sm">
-            태그 (중복 선택 가능)
+            태그 (검색하여 최대 5개 선택)
           </label>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {TAG_CATEGORIES.map((tag) => (
-              <label
-                key={tag}
-                className="flex items-center font-normal cursor-pointer text-base"
-              >
-                <input
-                  type="checkbox"
-                  value={tag}
-                  onChange={handleTagChange}
-                  className="mr-1.5"
-                />
-                {tag}
-              </label>
-            ))}
-          </div>
+          <TagSelector
+            allTags={TAG_CATEGORIES}
+            selectedTags={selectedTags}
+            onSelectionChange={handleTagSelectionChange}
+            maxSelection={5}
+          />
         </div>
 
         <div className="mb-5">
@@ -370,11 +350,13 @@ const RestaurantInsert = () => {
           )}
         </div>
 
+        {/* 5. 로딩 상태와 연동된 버튼 */}
         <button
           type="submit"
-          className="w-full py-3 px-5 text-white rounded cursor-pointer text-base font-semibold transition-colors duration-200 bg-blue-600 hover:bg-blue-700"
+          disabled={loading}
+          className="w-full py-3 px-5 text-white rounded cursor-pointer text-base font-semibold transition-colors duration-200 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          등록하기
+          {loading ? "등록 중..." : "등록하기"}
         </button>
       </form>
     </div>
