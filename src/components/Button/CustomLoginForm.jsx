@@ -3,30 +3,28 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { GoogleSignInButton, KakaoSignInButton } from './SocialButton'; // 앞서 만든 Tailwind 버튼
 import { AuthContext } from "../../provider/AuthContext";
 import useApi from '../../hooks/useApi';
-import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 export function CustomGoogleLoginForm() {
   const [msg, setMsg] = useState('');
+  const navigate = useNavigate();
   const { login: AuthLogin } = useContext(AuthContext);
   const { header: googleHeader, body: googleBody, error: googleError, loading: googleLoading, refetch: GoogleApi } = useApi('/api/auth/google-login', { method: 'post' }, false);
   // useGoogleLogin 훅으로 로그인 함수 생성
   const login = useGoogleLogin({
     onSuccess: CredentialResponse => {
-      // credentialResponse.credential 에 JWT 토큰이 들어옵니다
-      console.log('구글 로그인 성공:', CredentialResponse);
-      // 이후 백엔드 통신 or 상태 저장 로직 처리
+      console.log('구글 로그인 성공 시 정보:', CredentialResponse);
       GoogleApi( {
-        data: { token: CredentialResponse },
+        data: { code: CredentialResponse.code },
       }).then((res) => {
         console.log(res);
-        const { header:hd , body:bd } = res.data
-        console.log(res.data);
+        const { header:hd , body:bd } = res
         if (hd.code[0] === 'S'){
-          AuthLogin(bd.items.loginInfo, bd.items.tokens, true, false);
           if (bd.items.loginInfo.isActive === 'N'){
             alert("비활성화된 계정이거나 정지된 계정입니다.");
             return;
           }
+          AuthLogin(bd.items.loginInfo, bd.items.tokens, true, false);
         } else {
           alert(`로그인 실패: ErrorCode ${header.code}`);
         }

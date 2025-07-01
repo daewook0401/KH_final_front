@@ -32,10 +32,10 @@ export const AuthProvider = ({ children }) => {
         })
       }, []);
   useEffect(() => {
-    if (auth.socialLoginState && auth.loginInfo.isModify !== null &&  auth.loginInfo.isModify === "N"){
+    if (auth.socialLoginState && auth.loginInfo.isModify === "N"){
       navigate("/social-info");
     }
-  }, [])
+  }, [auth.socialLoginState])
 
   const login = (loginInfo, tokens, socialLogin = false, longTimeAuth = false) => {
     console.log("login");
