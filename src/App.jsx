@@ -13,6 +13,8 @@ import MyPage from "./pages/UserInterface/MyPage/MyPage";
 import Login from "./pages/UserInterface/Login/Login";
 import SignUp from "./pages/UserInterface/Login/SignUp";
 import InsertReviewPage from "./pages/UserInterface/Review/InsertReviewPage";
+import Test from "./pages/UserInterface/Login/test";
+import "./api/AxiosInterCeptor";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -34,6 +36,7 @@ function App() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/test" element={<Test />}/>
         </Routes>
       </AuthProvider>
       <ChattingBtn />
