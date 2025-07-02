@@ -1,10 +1,12 @@
 import { useState } from "react";
-import Calendars from "../../../components/Calendar/Calendar";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import useApi from "../../../hooks/useApi";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { useEffect } from "react";
 import {
   CloseBtn,
   CountBox,
@@ -46,6 +48,7 @@ const Reservation = () => {
     "19:00",
     "20:00",
   ]);
+
   const { header, body, error, loading, refetch } = useApi(
     "/api/reservation",
     {
@@ -54,12 +57,29 @@ const Reservation = () => {
     false
   );
 
+  useEffect(() => {
+    refetch({
+      url: "/api/reservation",
+      method: "get",
+      params: {
+        restaurantNo: "2",
+        reserveDay: selectedDate.toISOString().slice(0, 10),
+      },
+    });
+  }, [selectedDate]);
+
+  const dateHandler = (date) => {
+    setSelectedDate(date);
+  };
+
   const handleSubmit = () => {
     refetch({
+      url: "/api/reservation",
+      method: "post",
       data: {
         restaurantNo: "2",
-        reserveDay: selectedDate,
-        numberofGuests: selectedCount,
+        reserveDay: selectedDate.toISOString().slice(0, 10),
+        numberOfGuests: selectedCount,
         reserveTime: selectedTime,
       },
     });
@@ -94,9 +114,9 @@ const Reservation = () => {
                     )
                   </GetTime>
                 </ModalLeftHeader>
-                <Calendars
-                  selectedDate={selectedDate}
-                  setSelectedDate={setSelectedDate}
+                <Calendar
+                  value={selectedDate}
+                  onChange={(date) => dateHandler(date)}
                 />
               </ModalLeft>
               <ModalRight>

@@ -7,10 +7,6 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ClearIcon from "@mui/icons-material/Clear";
 import useApi from "../../../hooks/useApi";
-import dayjs from "dayjs";
-import "dayjs/locale/ko";
-
-dayjs.locale("ko");
 
 import {
   ModalWrapper,
@@ -58,39 +54,50 @@ const Operatinghours = ({ restaurantNo }) => {
   );
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 문자열 ↔ dayjs ↔ Date 변환 유틸 (빈 문자열 안전 처리 포함)
-  // ────────────────────────────────────────────────────────────────────────────
-  const strToDay = (s) => {
-    if (!s) return null;
-    const parsed = dayjs(`1970-01-01 ${s}`, "YYYY-MM-DD HH:mm");
-    if (!parsed.isValid()) {
-      console.warn(`Invalid time format for input: ${s}`);
-      return null;
+  /* 
+    1. 문자열 => Date 변환
+    endTime이 26:00 뭐 이런식으로 저장되어있으면 -24시간 한 뒤 date로 변환
+    2. Date => 문자열 변환
+    endTime이 startTime보다 작으면 +24한 뒤  문자열 변환
+   */
+
+  const toDate = (timeStr) => {
+    if (!timeStr) return null;
+
+    const [hStr, mStr] = timeStr.split(":");
+    let hour = Number(hStr); // 26
+    const minute = Number(mStr); // 00
+
+    const d = new Date(2000, 0, 1);
+    if (hour >= 24) {
+      hour = hour % 24; // 26 ➜ 2
     }
-    return parsed;
+    d.setHours(hour, minute, 0, 0);
+    return d;
   };
 
-  const dayToStr = (d, isEndTime = false, startTime = null) => {
-    if (!d || !d.isValid()) return "";
-    if (isEndTime && startTime) {
-      const start = strToDay(startTime);
-      if (start && d.isBefore(start)) {
-        // endTime이 startTime보다 앞서면 24시간 추가
-        const hours = d.hour() + 24;
-        const minutes = d.minute();
-        return `${hours.toString().padStart(2, "0")}:${minutes
-          .toString()
-          .padStart(2, "0")}`;
-      }
+  const toString = (info, time, type) => {
+    if (!(time instanceof Date) || isNaN(time)) return "";
+    //  Date -> 분단위
+    let totalMin = time.getHours() * 60 + time.getMinutes();
+    //  endTime이 startTime 보다 앞이면 +24 h
+    if (type === "endTime" || (type === "breakEndTime" && info.startTime)) {
+      const [sh, sm] = info.startTime.split(":").map(Number);
+      const startMin = sh * 60 + sm;
+      if (totalMin <= startMin) totalMin += 24 * 60;
     }
-    return d.format("HH:mm");
+    //  분 => "HH:mm"
+    const hour = Math.floor(totalMin / 60);
+    const minute = totalMin % 60;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(
+      2,
+      "0"
+    )}`;
   };
-
-  const dayToDate = (d) => (d && d.isValid() ? d.toDate() : null);
-  const dateToDay = (d) => (d ? dayjs(d) : null);
 
   const check10Min = (time) => {
-    if (!time || time.minute() % 10 !== 0) {
+    if (!time) return false;
+    if (time.getMinutes() % 10 !== 0) {
       alert("10분 단위로만 선택할 수 있습니다.");
       return false;
     }
@@ -98,68 +105,38 @@ const Operatinghours = ({ restaurantNo }) => {
   };
 
   // 공통 업데이트 함수
-  const updateTime = (day, field, d) => {
+  const updateTime = (time, dayIdx, type) => {
     setOperatingHoursInfo((prev) =>
       prev.map((info, idx) =>
-        idx === day
+        idx === dayIdx
           ? {
               ...info,
-              [field]: dayToStr(
-                d,
-                field === "endTime" || field === "breakEndTime",
-                field === "endTime" ? info.startTime : info.breakStartTime
-              ),
+              [type]: toString(info, time, type),
             }
           : info
       )
     );
   };
 
-  // 영업 시간 선택
-  const handleTime = (dateObj, day, field) => {
-    const d = dateToDay(dateObj);
-    if (!check10Min(d)) return;
-
-    if (field === "endTime") {
-      const start = strToDay(operatingHoursInfo[day].startTime);
-      if (start && d && d.isBefore(start)) {
-        // endTime이 startTime보다 앞서면 24시간 추가
-        updateTime(day, field, d.add(1, "day"));
-      } else {
-        updateTime(day, field, d);
-      }
-    } else {
-      updateTime(day, field, d);
-    }
+  // 영업 시간
+  const handleTime = (time, dayIdx, type) => {
+    if (!check10Min(time)) return;
+    updateTime(time, dayIdx, type);
   };
 
-  // 브레이크 타임 선택
-  const handleBreak = (info, dateObj, day, field) => {
-    const d = dateToDay(dateObj);
-    if (!check10Min(d)) return;
+  // 브레이크 타임
+  const handleBreak = (info, time, dayIdx, type) => {
+    if (!check10Min(time)) return;
 
-    const start = strToDay(info.startTime);
-    const end = strToDay(info.endTime);
-
-    if (field === "breakStartTime" && d.isBefore(start)) {
+    if (type === "breakStartTime" && toDate(info.startTime) > time) {
       alert("브레이크 시작은 영업 시작 이후여야 합니다.");
       return;
     }
-    if (field === "breakEndTime" && d.isAfter(end)) {
+    if (type === "breakEndTime" && toDate(info.endTime) > time) {
       alert("브레이크 종료는 영업 종료 이전이어야 합니다.");
       return;
     }
-
-    if (field === "breakEndTime") {
-      const breakStart = strToDay(info.breakStartTime) || start;
-      let adjustedEnd = d;
-      if (adjustedEnd.isBefore(breakStart)) {
-        adjustedEnd = adjustedEnd.add(1, "day");
-      }
-      updateTime(day, field, adjustedEnd);
-    } else {
-      updateTime(day, field, d);
-    }
+    updateTime(time, dayIdx, type);
   };
 
   // 기본/브레이크 시간 추가
@@ -197,7 +174,7 @@ const Operatinghours = ({ restaurantNo }) => {
   const handleSubmit = () => {
     const update = operatingHoursInfo.map((info, i) => ({
       ...info,
-      restaurantNo: "8",
+      restaurantNo: "21",
       weekDay: dayOfWeek[i],
     }));
     console.log(update);
@@ -240,11 +217,11 @@ const Operatinghours = ({ restaurantNo }) => {
                         <div>
                           <DatePicker
                             selected={
-                              info.startTime
-                                ? dayToDate(strToDay(info.startTime))
-                                : null
+                              info.startTime ? toDate(info.startTime) : null
                             }
-                            onChange={(d) => handleTime(d, dayIdx, "startTime")}
+                            onChange={(time) =>
+                              handleTime(time, dayIdx, "startTime")
+                            }
                             showTimeSelect
                             showTimeSelectOnly
                             timeIntervals={10}
@@ -257,11 +234,11 @@ const Operatinghours = ({ restaurantNo }) => {
                         <div>
                           <DatePicker
                             selected={
-                              info.endTime
-                                ? dayToDate(strToDay(info.endTime))
-                                : null
+                              info.endTime ? toDate(info.endTime) : null
                             }
-                            onChange={(d) => handleTime(d, dayIdx, "endTime")}
+                            onChange={(time) =>
+                              handleTime(time, dayIdx, "endTime")
+                            }
                             showTimeSelect
                             showTimeSelectOnly
                             timeIntervals={10}
@@ -290,11 +267,11 @@ const Operatinghours = ({ restaurantNo }) => {
                           <DatePicker
                             selected={
                               info.breakStartTime
-                                ? dayToDate(strToDay(info.breakStartTime))
+                                ? toDate(info.breakStartTime)
                                 : null
                             }
-                            onChange={(d) =>
-                              handleBreak(info, d, dayIdx, "breakStartTime")
+                            onChange={(time) =>
+                              handleBreak(info, time, dayIdx, "breakStartTime")
                             }
                             showTimeSelect
                             showTimeSelectOnly
@@ -309,11 +286,11 @@ const Operatinghours = ({ restaurantNo }) => {
                           <DatePicker
                             selected={
                               info.breakEndTime
-                                ? dayToDate(strToDay(info.breakEndTime))
+                                ? toDate(info.breakEndTime)
                                 : null
                             }
-                            onChange={(d) =>
-                              handleBreak(info, d, dayIdx, "breakEndTime")
+                            onChange={(time) =>
+                              handleBreak(info, time, dayIdx, "breakEndTime")
                             }
                             showTimeSelect
                             showTimeSelectOnly

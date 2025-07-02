@@ -9,6 +9,7 @@ import FormatListBulletedAddIcon from "@mui/icons-material/FormatListBulletedAdd
 import InfoIcon from "@mui/icons-material/Info";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ClearIcon from "@mui/icons-material/Clear";
+import useApi from "../../../hooks/useApi";
 import {
   CloseBtn,
   CountBox,
@@ -37,10 +38,25 @@ import {
   TimeInput,
   TimeRow,
 } from "./Settings.styles";
+/* 	
+  private String restaurantNo;
+	private int timeInterval;
+	private int maxNum;
+	private int minNum;
+	private int maxTeamNum;
+	private String description;
+	 */
 
-const Settings = () => {
+const Settings = ({ restaurantNo }) => {
   const [settingsModal, setReservationModal] = useState(true);
-  const [interval, setInterval] = useState("30");
+  const [settingInfo, setSettingInfo] = useState({
+    restaurantNo: "23",
+    interval: 30,
+    maxNum: 5,
+    minNum: 1,
+    maxTeamNum: 5,
+    description: "",
+  });
   const [reservationTimeInfo, setReservationTimeInfo] = useState(
     [...Array(7)].map(() => ({
       startTime: "09:00",
@@ -56,30 +72,71 @@ const Settings = () => {
     "Saturday",
     "Sunday",
   ]);
-  const parseTimeStringToDate = (timeStr) =>
-    new Date(`1970-01-01T${timeStr}:00`);
 
-  const parseDateToTimeString = (date) => {
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${hours}:${minutes}`;
+  const { header, body, error, loading, refetch } = useApi(
+    "/api/settings",
+    {
+      method: "post",
+    },
+    false
+  );
+
+  const toDate = (timeStr) => {
+    if (!timeStr) return null;
+
+    const [hStr, mStr] = timeStr.split(":");
+    let hour = Number(hStr); // 26
+    const minute = Number(mStr); // 00
+
+    const d = new Date(2000, 0, 1);
+    if (hour >= 24) {
+      hour = hour % 24; // 26 ➜ 2
+    }
+    d.setHours(hour, minute, 0, 0);
+    return d;
   };
 
-  const handleEndTime = (endTime, day) => {
-    if (endTime.getMinutes() % 10 === 0) {
-      setReservationTimeInfo((prev) =>
-        prev.map((info, index) =>
-          index === day
-            ? {
-                ...info,
-                endTime: parseDateToTimeString(endTime),
-              }
-            : info
-        )
-      );
-    } else {
-      alert("10분 단위로만 선택할 수 있습니다.");
+  const toString = (info, time, type) => {
+    if (!(time instanceof Date) || isNaN(time)) return "";
+    let totalMin = time.getHours() * 60 + time.getMinutes();
+    if (type === "endTime" && info.startTime) {
+      const [sh, sm] = info.startTime.split(":").map(Number);
+      const startMin = sh * 60 + sm;
+      if (totalMin <= startMin) totalMin += 24 * 60;
     }
+    const hour = Math.floor(totalMin / 60);
+    const minute = totalMin % 60;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(
+      2,
+      "0"
+    )}`;
+  };
+
+  const check10Min = (time) => {
+    if (!time) return false;
+    if (time.getMinutes() % 10 !== 0) {
+      alert("10분 단위로만 선택할 수 있습니다.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleTime = (time, dayIdx, type) => {
+    if (!check10Min(time)) return;
+    updateTime(time, dayIdx, type);
+  };
+
+  const updateTime = (time, dayIdx, type) => {
+    setReservationTimeInfo((prev) =>
+      prev.map((info, idx) =>
+        idx === dayIdx
+          ? {
+              ...info,
+              [type]: toString(info, time, type),
+            }
+          : info
+      )
+    );
   };
 
   const handleAddTime = (day) => {
@@ -113,6 +170,20 @@ const Settings = () => {
     );
   };
 
+  const handleSubmit = () => {
+    const update = reservationTimeInfo.map((info, i) => ({
+      ...info,
+      restaurantNo: "23",
+      weekDay: dayOfWeek[i],
+    }));
+    console.log(update, settingInfo);
+    refetch({
+      data: {
+        reservation: update,
+        settingInfo: settingInfo,
+      },
+    });
+  };
   return (
     <>
       {settingsModal && (
@@ -138,16 +209,41 @@ const Settings = () => {
                   <ModalLeftTopContent>
                     <CountBox>
                       <Label htmlFor="minPeople">최소인원</Label>
-                      <Input id="minPeople" type="number" />
+                      <Input
+                        id="minPeople"
+                        type="number"
+                        value={settingInfo.minNum}
+                        onChange={(e) =>
+                          setSettingInfo((prev) => ({
+                            ...prev,
+                            minNum: e.target.value,
+                          }))
+                        }
+                      />
                       <Label htmlFor="maxPeople">최대인원</Label>
-                      <Input id="maxPeople" type="number" />
+                      <Input
+                        id="maxPeople"
+                        type="number"
+                        value={settingInfo.maxNum}
+                        onChange={(e) =>
+                          setSettingInfo((prev) => ({
+                            ...prev,
+                            maxNum: e.target.value,
+                          }))
+                        }
+                      />
                     </CountBox>
                     <div>
                       <Label htmlFor="reservationInterval">예약 간격</Label>
                       <Select
                         id="reservationInterval"
-                        value={interval}
-                        onChange={(e) => setInterval(e.target.value)}
+                        value={settingInfo.interval}
+                        onChange={(e) =>
+                          setSettingInfo((prev) => ({
+                            ...prev,
+                            interval: e.target.value,
+                          }))
+                        }
                       >
                         <option value="30">30분</option>
                         <option value="60">60분</option>
@@ -157,7 +253,17 @@ const Settings = () => {
                       <Label htmlFor="peoplePerTime">
                         한 타임당 받을 인원수
                       </Label>
-                      <Input id="peoplePerTime" type="number" />
+                      <Input
+                        id="peoplePerTime"
+                        type="number"
+                        value={settingInfo.maxTeamNum}
+                        onChange={(e) =>
+                          setSettingInfo((prev) => ({
+                            ...prev,
+                            maxTeamNum: e.target.value,
+                          }))
+                        }
+                      />
                     </div>
                   </ModalLeftTopContent>
                 </ModalLeftTop>
@@ -167,7 +273,15 @@ const Settings = () => {
                     &nbsp;
                     <span>예약 관련 설명</span>
                   </ModalLeftBottomHeader>
-                  <Textarea name="" id=""></Textarea>
+                  <Textarea
+                    value={settingInfo.description}
+                    onChange={(e) =>
+                      setSettingInfo((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                  ></Textarea>
                 </ModalLeftBottom>
               </ModalLeft>
               <ModalRight>
@@ -193,8 +307,12 @@ const Settings = () => {
                         <DatePickerWrapper>
                           <div>
                             <DatePicker
-                              selected={parseTimeStringToDate(info.startTime)}
-                              onChange={(date) => handleStartTime(date, index)}
+                              selected={
+                                info.startTime ? toDate(info.startTime) : null
+                              }
+                              onChange={(time) =>
+                                handleTime(time, index, "startTime")
+                              }
                               showTimeSelect
                               showTimeSelectOnly
                               timeIntervals={10}
@@ -206,8 +324,12 @@ const Settings = () => {
                           <Span>~</Span>
                           <div>
                             <DatePicker
-                              selected={parseTimeStringToDate(info.endTime)}
-                              onChange={(date) => handleEndTime(date, index)}
+                              selected={
+                                info.endTime ? toDate(info.endTime) : null
+                              }
+                              onChange={(time) =>
+                                handleTime(time, index, "endTime")
+                              }
                               showTimeSelect
                               showTimeSelectOnly
                               timeIntervals={10}
@@ -234,7 +356,7 @@ const Settings = () => {
               </ModalRight>
             </ModalContent>
             <ModalFooter>
-              <EnrollButton>등록하기</EnrollButton>
+              <EnrollButton onClick={handleSubmit}>등록하기</EnrollButton>
             </ModalFooter>
           </ModalLabel>
         </ModalWrapper>
