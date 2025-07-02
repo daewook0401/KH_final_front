@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/AxiosInterCeptor";
 
 /**
  * 공통 API 요청 훅
@@ -11,24 +11,19 @@ const useApi = (url, options = {}, immediate = true) => {
   const [header, setHeader] = useState(null);
   const [body, setBody] = useState(null);
   const [error, setError] = useState(null);
-  const API_URL = window.ENV?.API_URL;
   const fetch = (overrideOptions = {}) => {
     setLoading(true);
     setError(null);
 
     const config = {
-      url: API_URL + url,
+      url,
       method: options.method || "get",
-      headers: {
-        ...(options.auth && {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-        }),
-        ...(options.headers || {}),
-      },
+      headers: options.headers || {},
       withCredentials: options.withCredentials || false,
       ...options,
       ...overrideOptions,
     };
+    console.log(config);
     const promise = axios(config)
       .then( res => {
           const { header: hd, body: bd } = res.data;
@@ -45,7 +40,7 @@ const useApi = (url, options = {}, immediate = true) => {
           err.response?.data?.header?.message ||
           err.response?.data?.message ||
           err.message;
-          setError(err);
+          setError(msg);
         })
     promise.finally(() => setLoading(false));
     return promise;
