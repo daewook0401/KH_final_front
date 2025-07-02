@@ -47,10 +47,11 @@ import {
 	private String description;
 	 */
 
-const Settings = ({ restaurantNo }) => {
+const Settings = ({}) => {
+  const [restaurantNo, setRestaurantNo] = useState("2");
   const [settingsModal, setReservationModal] = useState(true);
   const [settingInfo, setSettingInfo] = useState({
-    restaurantNo: "23",
+    restaurantNo: restaurantNo,
     interval: 30,
     maxNum: 5,
     minNum: 1,
@@ -173,7 +174,7 @@ const Settings = ({ restaurantNo }) => {
   const handleSubmit = () => {
     const update = reservationTimeInfo.map((info, i) => ({
       ...info,
-      restaurantNo: "23",
+      restaurantNo: restaurantNo,
       weekDay: dayOfWeek[i],
     }));
     console.log(update, settingInfo);

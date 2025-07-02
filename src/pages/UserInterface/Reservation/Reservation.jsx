@@ -33,7 +33,7 @@ const Reservation = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedCount, setSelectedCount] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
-
+  const [restaurantNo, setRestaurantNo] = useState("2");
   const [people, setPeople] = useState(7);
   const [times, setTimes] = useState([
     "10:00",
@@ -49,20 +49,26 @@ const Reservation = () => {
     "20:00",
   ]);
 
-  const { header, body, error, loading, refetch } = useApi(
-    "/api/reservation",
-    {
-      method: "post",
+  const {
+    header: reservationInfoHd,
+    body: reservationInfoBd,
+    error,
+    loading,
+    refetch,
+  } = useApi("/api/reservation/info", {
+    method: "get",
+    params: {
+      restaurantNo: restaurantNo,
     },
-    false
-  );
+  });
+  console.log(reservationInfoHd, reservationInfoBd);
 
   useEffect(() => {
     refetch({
       url: "/api/reservation",
       method: "get",
       params: {
-        restaurantNo: "2",
+        restaurantNo: restaurantNo,
         reserveDay: selectedDate.toISOString().slice(0, 10),
       },
     });
@@ -77,13 +83,14 @@ const Reservation = () => {
       url: "/api/reservation",
       method: "post",
       data: {
-        restaurantNo: "2",
+        restaurantNo: restaurantNo,
         reserveDay: selectedDate.toISOString().slice(0, 10),
         numberOfGuests: selectedCount,
         reserveTime: selectedTime,
       },
     });
   };
+
   return (
     <>
       {reservationModal && (

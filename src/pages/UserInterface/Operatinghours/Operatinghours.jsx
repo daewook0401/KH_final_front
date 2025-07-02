@@ -26,7 +26,8 @@ import {
   ModalFooter,
 } from "./operatingHoursStyles";
 
-const Operatinghours = ({ restaurantNo }) => {
+const Operatinghours = ({}) => {
+  const [restaurantNo, setRestaurantNo] = useState("2");
   const [operatingHoursModal, setOperatingHoursModal] = useState(true);
   const [operatingHoursInfo, setOperatingHoursInfo] = useState(
     [...Array(7)].map(() => ({
@@ -174,7 +175,7 @@ const Operatinghours = ({ restaurantNo }) => {
   const handleSubmit = () => {
     const update = operatingHoursInfo.map((info, i) => ({
       ...info,
-      restaurantNo: "21",
+      restaurantNo: restaurantNo,
       weekDay: dayOfWeek[i],
     }));
     console.log(update);
