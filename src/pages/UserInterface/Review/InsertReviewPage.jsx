@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useContext } from "react";
+import axios from "axios";
 import useApi from "../../../hooks/useApi";
 import InputScore from "../../../components/review/InputScore";
 import ImageUploader from "../../../components/review/ImageUploader";
@@ -25,7 +26,6 @@ function InsertReviewPage({
   const navigate = useNavigate();
 
   const memberNickname = sessionStorage.getItem("memberNickname");
-  const accessToken = sessionStorage.getItem("accessToken");
 
   const {
     loading,
@@ -76,12 +76,13 @@ function InsertReviewPage({
     }
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = (billNo) => {
     const formData = new FormData();
     formData.append("restaurantNo", restaurantId);
     formData.append("reviewScore", score);
     formData.append("reviewContent", content);
     formData.append("memberNickname", memberNickname);
+    formData.append("billPass", "Y");
 
     images.forEach((image) => {
       if (image.type === "new") {
@@ -93,8 +94,19 @@ function InsertReviewPage({
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
     })
-      .then(() => {
+      .then((res) => {
         alert(editReview ? "리뷰가 수정되었습니다!" : "리뷰가 등록되었습니다!");
+
+        const reviewNo = res.data.reviewNo;
+
+        if (billNo && reviewNo) {
+          return axios.put("/api/bills/connect", {
+            billNo,
+            reviewNo,
+          });
+        }
+      })
+      .then(() => {
         setScore(0);
         setContent("");
         setImages([]);
@@ -115,10 +127,10 @@ function InsertReviewPage({
     });
   };
 
-  const handleVerificationSuccess = () => {
+  const handleVerificationSuccess = (billNo) => {
     if (pendingSubmission) {
       setPendingSubmission(false);
-      handleFinalSubmit();
+      handleFinalSubmit(billNo);
     }
   };
 

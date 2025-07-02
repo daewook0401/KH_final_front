@@ -26,7 +26,11 @@ function ReviewPage({ restaurantNo }) {
     loading,
     error,
     refetch,
-  } = useApi(`/api/reviews?restaurantNo=${restaurantNo}`, {}, !!restaurantNo);
+  } = useApi(
+    `/restaurants/${restaurantNo}/reviews?page=${currentPage}`,
+    {},
+    !!restaurantNo
+  );
 
   const safeReviews = Array.isArray(reviews) ? reviews : [];
   const myReviews = safeReviews.filter(
@@ -80,7 +84,7 @@ function ReviewPage({ restaurantNo }) {
     if (!confirmDelete) return;
 
     axios
-      .delete(`/api/reviews/${reviewNo}`, {
+      .delete(`/restaurants/${restaurantNo}/reviews/${reviewNo}`, {
         headers: {
           Authorization: `Bearer ${auth.tokens.accessToken}`,
         },
