@@ -5,8 +5,9 @@ import axios from "../api/AxiosInterCeptor"
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export const AuthContext = createContext();
-
+const GOOGLE_CLIENT = window.ENV?.GOOGLE_CLIENT;
 export const AuthProvider = ({ children }) => {
+  
   const navigate = useNavigate();
   const [auth, setAuth] = useState({
     loginInfo: null,
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
             withCredentials: true })
         .then(res => {
           if (res.data.header.code[0] === 'S'){
-            login(res.data.body.items.loginInfo, res.data.body.items.tokens, false, true);
+            login(res.data.body.items.loginInfo, res.data.body.items.tokens, sessionStorage.getItem("socialLoginState"), sessionStorage.getItem("longTimeAuth"));
           }})
         .catch(err => {
           if (err.response?.status === 401) {
@@ -30,12 +31,13 @@ export const AuthProvider = ({ children }) => {
         }).finally(()=>{
           setReady(true);
         })
-      }, []);
+      }, [], [auth]);
   useEffect(() => {
-    if (auth.socialLoginState && auth.loginInfo.isModify === "N"){
-      navigate("/social-info");
+    console.log(auth.socialLoginState);
+    if (auth.socialLoginState && auth.loginInfo?.isModify === "N"){
+      navigate("/social-info", { replace: true });
     }
-  }, [auth.socialLoginState])
+  }, [auth, ready, navigate])
 
   const login = (loginInfo, tokens, socialLogin = false, longTimeAuth = false) => {
     console.log("login");
@@ -46,10 +48,16 @@ export const AuthProvider = ({ children }) => {
       socialLoginState: socialLogin, 
       longTimeAuth: longTimeAuth
     });
-    sessionStorage.setItem("loginInfo", JSON.stringify(loginInfo));
-    sessionStorage.setItem("refreshToken", tokens.refreshToken);
-    sessionStorage.setItem("accessToken", tokens.accessToken);
-    sessionStorage.setItem("socialLoginState", JSON.stringify(socialLogin));
+    if (loginInfo !== null){
+      sessionStorage.setItem("loginInfo", JSON.stringify(loginInfo));
+    }
+    if (tokens !== null){
+      sessionStorage.setItem("refreshToken", tokens.refreshToken);
+      sessionStorage.setItem("accessToken", tokens.accessToken);
+    }
+    sessionStorage.setItem("isAuthenticated", true);
+    sessionStorage.setItem("socialLoginState", socialLogin);
+    sessionStorage.setItem("longTimeAuth", longTimeAuth);
   };
 
   const logout = () => {
@@ -75,16 +83,16 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem("loginInfo");
       sessionStorage.removeItem("refreshToken");
       sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("socialLoginState");
-      setLoggingOut(false);
+      sessionStorage.setItem("isAuthenticated");
+      sessionStorage.setItem("socialLoginState");
+      sessionStorage.setItem("longTimeAuth");
     })
   };
   if (!ready){
     return <div>로딩 중</div>
   }
   return (
-    <GoogleOAuthProvider clientId=
-    "1070671526490-nke8ohh1a4dc3kg5hesdof5t6cdq8v2j.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT}>
     <AuthContext.Provider value={{auth, login, logout }}>
       {children}
     </AuthContext.Provider>

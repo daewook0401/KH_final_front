@@ -17,6 +17,7 @@ import Test from "./pages/UserInterface/Login/test";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 
 import "./api/AxiosInterCeptor";
+import PopupCallback from "./pages/UserInterface/Login/PopupCallback";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -39,6 +40,7 @@ function App() {
 
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/social-info" element={<SocialInfo />} />
           <Route path="/test" element={<Test />}/>

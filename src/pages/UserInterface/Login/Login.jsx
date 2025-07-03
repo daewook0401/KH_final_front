@@ -1,12 +1,11 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../../../common/Header/Header"; // 이 컴포넌트는 사용자 환경에 맞게 있어야 합니다.
 import useApi from "../../../hooks/useApi";
 import { idRegex, pwRegex } from "../../../components/Regex";
 import { AuthContext } from "../../../provider/AuthContext";
 import { GoogleLogin } from '@react-oauth/google';
-import  { GoogleSignInButton, KakaoSignInButton } from "../../../components/Button/SocialButton"
-import {CustomGoogleLoginForm} from "../../../components/Button/CustomLoginForm";
+import {CustomGoogleLoginForm, CustomKakaoLoginForm} from "../../../components/Button/CustomLoginForm";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -32,9 +31,11 @@ const Login = () => {
     const { memberId, memberPw, authLogin} = formData;
     
     if (!idRegex.test(memberId)){
+      alert("아이디는 소문자 영문과 숫자를 포함하여 4~20자 이내여야 합니다. 숫자만으로는 구성할 수 없습니다.");
       return;
     }
     if (!pwRegex.test(memberPw)){
+      alert("비밀번호는 대소문자, 숫자, 특수문자 중 3가지 이상을 포함해야 합니다.")
       return;
     }
     console.log(formData.memberId, formData.memberPw, longTimeAuth);
@@ -52,13 +53,25 @@ const Login = () => {
         login(body.items.loginInfo, body.items.tokens, false, longTimeAuth);
         navigate(-1);
       } else {
-        alert(`로그인 실패: ErrorCode ${header.code}`);
+        alert(`${header.message}`);
       }
     }).catch((err) => {
       alert(err);
     })
   }
-
+  // App.jsx or LoginPage.jsx
+  useEffect(() => {
+    const handler = async e => {
+      if (!e.data.code) return;
+      const resp = await axios.get('/oauth2/kakao/callback', {
+        params: { code: e.data.code }
+      });
+      // resp.data 에 { accessToken, refreshToken, userEmail… }
+      // sessionStorage 저장, 리다이렉트 등 처리
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
 
   return (
     <>
@@ -69,9 +82,8 @@ const Login = () => {
             로그인
           </h1>
           <div className="flex flex-col justify-center-safe space-y-2">
-            <KakaoSignInButton />
+            <CustomKakaoLoginForm />
             <CustomGoogleLoginForm />
-            <GoogleLogin />
           </div>
 
           <div className="my-4"></div>

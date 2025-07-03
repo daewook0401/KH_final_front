@@ -1,15 +1,17 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { GoogleSignInButton, KakaoSignInButton } from './SocialButton'; // 앞서 만든 Tailwind 버튼
 import { AuthContext } from "../../provider/AuthContext";
 import useApi from '../../hooks/useApi';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import axios from '../../api/AxiosInterCeptor';
 
 export function CustomGoogleLoginForm() {
-  const [msg, setMsg] = useState('');
+  const { header: googleHeader, body: googleBody, error: googleError, loading: googleLoading, refetch: GoogleApi } = useApi('/api/oauth2/google-login', { method: 'post' }, false);
+  
   const navigate = useNavigate();
   const { login: AuthLogin } = useContext(AuthContext);
-  const { header: googleHeader, body: googleBody, error: googleError, loading: googleLoading, refetch: GoogleApi } = useApi('/api/auth/google-login', { method: 'post' }, false);
+  
   // useGoogleLogin 훅으로 로그인 함수 생성
   const login = useGoogleLogin({
     onSuccess: CredentialResponse => {
@@ -25,10 +27,14 @@ export function CustomGoogleLoginForm() {
             return;
           }
           AuthLogin(bd.items.loginInfo, bd.items.tokens, true, false);
+          if(bd.items.loginInfo.isModify === 'N'){
+            navigate("/social-info");
+          } else {
+            navigate("/");
+          }
         } else {
           alert(`로그인 실패: ErrorCode ${header.code}`);
         }
-        navigate(-1);
       }).catch(err =>{
         alert(err);
       })
@@ -41,7 +47,37 @@ export function CustomGoogleLoginForm() {
     <div className="space-y-4">
       {/* 카카오 버튼 등 다른 요소 위에 */}
       <GoogleSignInButton onClick={() => login()} />
-      {msg && <p className="text-red-500">{msg}</p>}
+    </div>
+  );
+}
+
+
+
+
+
+
+
+
+export const getKakaoLoginURL = async () => {
+  const res = await axios.get('/api/oauth2/kakao-url');
+  return res.data.body.items.loginUrl;
+}
+export function CustomKakaoLoginForm() {
+  const [loading, setLoading] = useState(false);
+  const handleKakaoLogin = async () => {
+    try {
+      setLoading(true);
+      const url = await getKakaoLoginURL();
+      window.location.href = url;
+    } catch (e) {
+      console.error(e);
+      setLoading(false);
+    } 
+  };
+
+  return (
+    <div className="space-y-4">
+      <KakaoSignInButton onClick={handleKakaoLogin} disabled={loading} />
     </div>
   );
 }

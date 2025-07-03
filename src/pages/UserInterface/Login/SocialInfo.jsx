@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "../../../common/Header/Header";
 import { nameRegex, nickRegex } from "../../../components/Regex";
 import useApi from "../../../hooks/useApi";
+import { useNavigate } from "react-router-dom";
 
 const SocialInfo = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const SocialInfo = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [profileImage, setProfileImage] = useState(null);
   const [isVerifyNickName, setIsVerifyNickName] = useState(false);
+  const navigate = useNavigate();
   const { header : nickNameHeader, body : nickNameBody, error : nickNameError, loading : nickNameLoading, refetch:checkNickName } = useApi('/api/member/check-nickname', { method: 'post', data: { memberNickName : formData.memberNickName}}, false);
   const { header : editedHeader, body : editedBody, error : editedError, loading : editedLoading, refetch:editedInfo } = useApi('/api/member/social-update', { method: 'put' }, false);
 
