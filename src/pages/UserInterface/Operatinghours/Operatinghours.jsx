@@ -26,9 +26,8 @@ import {
   ModalFooter,
 } from "./operatingHoursStyles";
 
-const Operatinghours = ({}) => {
+const Operatinghours = ({ setOpenOperatingTime }) => {
   const [restaurantNo, setRestaurantNo] = useState("2");
-  const [operatingHoursModal, setOperatingHoursModal] = useState(true);
   const [operatingHoursInfo, setOperatingHoursInfo] = useState(
     [...Array(7)].map(() => ({
       startTime: "09:00",
@@ -184,146 +183,140 @@ const Operatinghours = ({}) => {
 
   // ──────────────────────────────────────────────────────────────────────
   return (
-    operatingHoursModal && (
-      <ModalWrapper>
-        <CloseBtn>
-          <CloseRoundedIcon
-            style={{ fontSize: 40 }}
-            onClick={() => setOperatingHoursModal(false)}
-          />
-        </CloseBtn>
-        <ModalLabel>
-          <ModalHeader>
-            <H2>운영 시간 및 브레이크타임 설정</H2>
-          </ModalHeader>
-          <ModalContent>
-            <TimeWrapper>
-              {operatingHoursInfo.map((info, dayIdx) => (
-                <div key={dayIdx}>
-                  <TimeRow>
-                    <DayLabel>{dayOfWeek[dayIdx]}</DayLabel>
-                    <AddCircleOutlineIcon
-                      onClick={() => handleAddTime(dayIdx)}
-                      style={{
-                        cursor: "pointer",
-                        marginTop: 5,
-                        fontSize: 20,
-                        color: "#1e2b47",
-                      }}
-                    />
+    <ModalWrapper>
+      <CloseBtn>
+        <CloseRoundedIcon
+          style={{ fontSize: 40 }}
+          onClick={() => setOpenOperatingTime(false)}
+        />
+      </CloseBtn>
+      <ModalLabel>
+        <ModalHeader>
+          <H2>운영 시간 및 브레이크타임 설정</H2>
+        </ModalHeader>
+        <ModalContent>
+          <TimeWrapper>
+            {operatingHoursInfo.map((info, dayIdx) => (
+              <div key={dayIdx}>
+                <TimeRow>
+                  <DayLabel>{dayOfWeek[dayIdx]}</DayLabel>
+                  <AddCircleOutlineIcon
+                    onClick={() => handleAddTime(dayIdx)}
+                    style={{
+                      cursor: "pointer",
+                      marginTop: 5,
+                      fontSize: 20,
+                      color: "#1e2b47",
+                    }}
+                  />
 
-                    {/* 영업시간 */}
-                    {info.startTime && info.endTime && (
-                      <DatePickerWrapper>
-                        <div>
-                          <DatePicker
-                            selected={
-                              info.startTime ? toDate(info.startTime) : null
-                            }
-                            onChange={(time) =>
-                              handleTime(time, dayIdx, "startTime")
-                            }
-                            showTimeSelect
-                            showTimeSelectOnly
-                            timeIntervals={10}
-                            dateFormat="HH:mm"
-                            locale="ko"
-                            customInput={<TimeInput />}
-                          />
-                        </div>
-                        <Span>~</Span>
-                        <div>
-                          <DatePicker
-                            selected={
-                              info.endTime ? toDate(info.endTime) : null
-                            }
-                            onChange={(time) =>
-                              handleTime(time, dayIdx, "endTime")
-                            }
-                            showTimeSelect
-                            showTimeSelectOnly
-                            timeIntervals={10}
-                            dateFormat="HH:mm"
-                            locale="ko"
-                            customInput={<TimeInput />}
-                          />
-                        </div>
-                        <ClearIcon
-                          onClick={() => handleClearTime(dayIdx)}
-                          style={{
-                            cursor: "pointer",
-                            marginLeft: 15,
-                            marginTop: 5,
-                            fontSize: 20,
-                            color: "#1e2b47",
-                          }}
+                  {/* 영업시간 */}
+                  {info.startTime && info.endTime && (
+                    <DatePickerWrapper>
+                      <div>
+                        <DatePicker
+                          selected={
+                            info.startTime ? toDate(info.startTime) : null
+                          }
+                          onChange={(time) =>
+                            handleTime(time, dayIdx, "startTime")
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={10}
+                          dateFormat="HH:mm"
+                          locale="ko"
+                          customInput={<TimeInput />}
                         />
-                      </DatePickerWrapper>
-                    )}
+                      </div>
+                      <Span>~</Span>
+                      <div>
+                        <DatePicker
+                          selected={info.endTime ? toDate(info.endTime) : null}
+                          onChange={(time) =>
+                            handleTime(time, dayIdx, "endTime")
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={10}
+                          dateFormat="HH:mm"
+                          locale="ko"
+                          customInput={<TimeInput />}
+                        />
+                      </div>
+                      <ClearIcon
+                        onClick={() => handleClearTime(dayIdx)}
+                        style={{
+                          cursor: "pointer",
+                          marginLeft: 15,
+                          marginTop: 5,
+                          fontSize: 20,
+                          color: "#1e2b47",
+                        }}
+                      />
+                    </DatePickerWrapper>
+                  )}
 
-                    {/* 브레이크타임 */}
-                    {info.breakStartTime && info.breakEndTime && (
-                      <BreakTimeRow>
-                        <div>
-                          <DatePicker
-                            selected={
-                              info.breakStartTime
-                                ? toDate(info.breakStartTime)
-                                : null
-                            }
-                            onChange={(time) =>
-                              handleBreak(info, time, dayIdx, "breakStartTime")
-                            }
-                            showTimeSelect
-                            showTimeSelectOnly
-                            timeIntervals={10}
-                            dateFormat="HH:mm"
-                            locale="ko"
-                            customInput={<TimeInput />}
-                          />
-                        </div>
-                        <Span>~</Span>
-                        <div>
-                          <DatePicker
-                            selected={
-                              info.breakEndTime
-                                ? toDate(info.breakEndTime)
-                                : null
-                            }
-                            onChange={(time) =>
-                              handleBreak(info, time, dayIdx, "breakEndTime")
-                            }
-                            showTimeSelect
-                            showTimeSelectOnly
-                            timeIntervals={10}
-                            dateFormat="HH:mm"
-                            locale="ko"
-                            customInput={<TimeInput />}
-                          />
-                        </div>
-                        <ClearIcon
-                          onClick={() => handleClearTime(dayIdx)}
-                          style={{
-                            cursor: "pointer",
-                            marginLeft: 20,
-                            marginTop: 5,
-                            fontSize: 20,
-                            color: "#1e2b47",
-                          }}
+                  {/* 브레이크타임 */}
+                  {info.breakStartTime && info.breakEndTime && (
+                    <BreakTimeRow>
+                      <div>
+                        <DatePicker
+                          selected={
+                            info.breakStartTime
+                              ? toDate(info.breakStartTime)
+                              : null
+                          }
+                          onChange={(time) =>
+                            handleBreak(info, time, dayIdx, "breakStartTime")
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={10}
+                          dateFormat="HH:mm"
+                          locale="ko"
+                          customInput={<TimeInput />}
                         />
-                      </BreakTimeRow>
-                    )}
-                  </TimeRow>
-                </div>
-              ))}
-            </TimeWrapper>
-          </ModalContent>
-          <ModalFooter>
-            <EnrollButton onClick={handleSubmit}>등록하기</EnrollButton>
-          </ModalFooter>
-        </ModalLabel>
-      </ModalWrapper>
-    )
+                      </div>
+                      <Span>~</Span>
+                      <div>
+                        <DatePicker
+                          selected={
+                            info.breakEndTime ? toDate(info.breakEndTime) : null
+                          }
+                          onChange={(time) =>
+                            handleBreak(info, time, dayIdx, "breakEndTime")
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={10}
+                          dateFormat="HH:mm"
+                          locale="ko"
+                          customInput={<TimeInput />}
+                        />
+                      </div>
+                      <ClearIcon
+                        onClick={() => handleClearTime(dayIdx)}
+                        style={{
+                          cursor: "pointer",
+                          marginLeft: 20,
+                          marginTop: 5,
+                          fontSize: 20,
+                          color: "#1e2b47",
+                        }}
+                      />
+                    </BreakTimeRow>
+                  )}
+                </TimeRow>
+              </div>
+            ))}
+          </TimeWrapper>
+        </ModalContent>
+        <ModalFooter>
+          <EnrollButton onClick={handleSubmit}>등록하기</EnrollButton>
+        </ModalFooter>
+      </ModalLabel>
+    </ModalWrapper>
   );
 };
 

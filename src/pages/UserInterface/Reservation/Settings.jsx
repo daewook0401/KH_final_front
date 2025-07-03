@@ -38,18 +38,9 @@ import {
   TimeInput,
   TimeRow,
 } from "./Settings.styles";
-/* 	
-  private String restaurantNo;
-	private int timeInterval;
-	private int maxNum;
-	private int minNum;
-	private int maxTeamNum;
-	private String description;
-	 */
 
-const Settings = ({}) => {
+const Settings = ({ setOpenReservationSetting }) => {
   const [restaurantNo, setRestaurantNo] = useState("2");
-  const [settingsModal, setReservationModal] = useState(true);
   const [settingInfo, setSettingInfo] = useState({
     restaurantNo: restaurantNo,
     interval: 30,
@@ -187,181 +178,177 @@ const Settings = ({}) => {
   };
   return (
     <>
-      {settingsModal && (
-        <ModalWrapper>
-          <CloseBtn>
-            <CloseRoundedIcon
-              style={{ fontSize: "40px" }}
-              onClick={() => setReservationModal(false)}
-            />
-          </CloseBtn>
-          <ModalLabel>
-            <ModalHeader>
-              <H2>예약설정</H2>
-            </ModalHeader>
-            <ModalContent>
-              <ModalLeft>
-                <ModalLeftTop>
-                  <ModalLeftTopHeader>
-                    <FormatListBulletedAddIcon />
-                    &nbsp;
-                    <span>기본 예약 조건</span>
-                  </ModalLeftTopHeader>
-                  <ModalLeftTopContent>
-                    <CountBox>
-                      <Label htmlFor="minPeople">최소인원</Label>
-                      <Input
-                        id="minPeople"
-                        type="number"
-                        value={settingInfo.minNum}
-                        onChange={(e) =>
-                          setSettingInfo((prev) => ({
-                            ...prev,
-                            minNum: e.target.value,
-                          }))
-                        }
-                      />
-                      <Label htmlFor="maxPeople">최대인원</Label>
-                      <Input
-                        id="maxPeople"
-                        type="number"
-                        value={settingInfo.maxNum}
-                        onChange={(e) =>
-                          setSettingInfo((prev) => ({
-                            ...prev,
-                            maxNum: e.target.value,
-                          }))
-                        }
-                      />
-                    </CountBox>
-                    <div>
-                      <Label htmlFor="reservationInterval">예약 간격</Label>
-                      <Select
-                        id="reservationInterval"
-                        value={settingInfo.interval}
-                        onChange={(e) =>
-                          setSettingInfo((prev) => ({
-                            ...prev,
-                            interval: e.target.value,
-                          }))
-                        }
-                      >
-                        <option value="30">30분</option>
-                        <option value="60">60분</option>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="peoplePerTime">
-                        한 타임당 받을 인원수
-                      </Label>
-                      <Input
-                        id="peoplePerTime"
-                        type="number"
-                        value={settingInfo.maxTeamNum}
-                        onChange={(e) =>
-                          setSettingInfo((prev) => ({
-                            ...prev,
-                            maxTeamNum: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </ModalLeftTopContent>
-                </ModalLeftTop>
-                <ModalLeftBottom>
-                  <ModalLeftBottomHeader>
-                    <InfoIcon />
-                    &nbsp;
-                    <span>예약 관련 설명</span>
-                  </ModalLeftBottomHeader>
-                  <Textarea
-                    value={settingInfo.description}
-                    onChange={(e) =>
-                      setSettingInfo((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                  ></Textarea>
-                </ModalLeftBottom>
-              </ModalLeft>
-              <ModalRight>
-                <ModalRightTopHeader>
-                  <AccessTimeIcon />
+      <ModalWrapper>
+        <CloseBtn>
+          <CloseRoundedIcon
+            style={{ fontSize: "40px" }}
+            onClick={() => setOpenReservationSetting(false)}
+          />
+        </CloseBtn>
+        <ModalLabel>
+          <ModalHeader>
+            <H2>예약설정</H2>
+          </ModalHeader>
+          <ModalContent>
+            <ModalLeft>
+              <ModalLeftTop>
+                <ModalLeftTopHeader>
+                  <FormatListBulletedAddIcon />
                   &nbsp;
-                  <span>요일별 예약 가능한 시간</span>
-                </ModalRightTopHeader>
-                {reservationTimeInfo.map((info, index) => (
-                  <div key={index}>
-                    <TimeRow>
-                      <DayLabel>{dayOfWeek[index]}</DayLabel>
-                      <AddCircleOutlineIcon
-                        onClick={() => handleAddTime(index)}
-                        style={{
-                          cursor: "pointer",
-                          marginTop: "5px",
-                          fontSize: "20px",
-                          color: "#1e2b47",
-                        }}
-                      />
-                      {info.startTime && info.endTime && (
-                        <DatePickerWrapper>
-                          <div>
-                            <DatePicker
-                              selected={
-                                info.startTime ? toDate(info.startTime) : null
-                              }
-                              onChange={(time) =>
-                                handleTime(time, index, "startTime")
-                              }
-                              showTimeSelect
-                              showTimeSelectOnly
-                              timeIntervals={10}
-                              dateFormat="HH:mm"
-                              locale="ko"
-                              customInput={<TimeInput />}
-                            />
-                          </div>
-                          <Span>~</Span>
-                          <div>
-                            <DatePicker
-                              selected={
-                                info.endTime ? toDate(info.endTime) : null
-                              }
-                              onChange={(time) =>
-                                handleTime(time, index, "endTime")
-                              }
-                              showTimeSelect
-                              showTimeSelectOnly
-                              timeIntervals={10}
-                              dateFormat="HH:mm"
-                              locale="ko"
-                              customInput={<TimeInput />}
-                            />
-                          </div>
-                          <ClearIcon
-                            onClick={() => handleClearTime(index)}
-                            style={{
-                              cursor: "pointer",
-                              marginLeft: "15px",
-                              marginTop: "5px",
-                              fontSize: "20px",
-                              color: "#1e2b47",
-                            }}
-                          />
-                        </DatePickerWrapper>
-                      )}
-                    </TimeRow>
+                  <span>기본 예약 조건</span>
+                </ModalLeftTopHeader>
+                <ModalLeftTopContent>
+                  <CountBox>
+                    <Label htmlFor="minPeople">최소인원</Label>
+                    <Input
+                      id="minPeople"
+                      type="number"
+                      value={settingInfo.minNum}
+                      onChange={(e) =>
+                        setSettingInfo((prev) => ({
+                          ...prev,
+                          minNum: e.target.value,
+                        }))
+                      }
+                    />
+                    <Label htmlFor="maxPeople">최대인원</Label>
+                    <Input
+                      id="maxPeople"
+                      type="number"
+                      value={settingInfo.maxNum}
+                      onChange={(e) =>
+                        setSettingInfo((prev) => ({
+                          ...prev,
+                          maxNum: e.target.value,
+                        }))
+                      }
+                    />
+                  </CountBox>
+                  <div>
+                    <Label htmlFor="reservationInterval">예약 간격</Label>
+                    <Select
+                      id="reservationInterval"
+                      value={settingInfo.interval}
+                      onChange={(e) =>
+                        setSettingInfo((prev) => ({
+                          ...prev,
+                          interval: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="30">30분</option>
+                      <option value="60">60분</option>
+                    </Select>
                   </div>
-                ))}
-              </ModalRight>
-            </ModalContent>
-            <ModalFooter>
-              <EnrollButton onClick={handleSubmit}>등록하기</EnrollButton>
-            </ModalFooter>
-          </ModalLabel>
-        </ModalWrapper>
-      )}
+                  <div>
+                    <Label htmlFor="peoplePerTime">한 타임당 받을 인원수</Label>
+                    <Input
+                      id="peoplePerTime"
+                      type="number"
+                      value={settingInfo.maxTeamNum}
+                      onChange={(e) =>
+                        setSettingInfo((prev) => ({
+                          ...prev,
+                          maxTeamNum: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </ModalLeftTopContent>
+              </ModalLeftTop>
+              <ModalLeftBottom>
+                <ModalLeftBottomHeader>
+                  <InfoIcon />
+                  &nbsp;
+                  <span>예약 관련 설명</span>
+                </ModalLeftBottomHeader>
+                <Textarea
+                  value={settingInfo.description}
+                  onChange={(e) =>
+                    setSettingInfo((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                ></Textarea>
+              </ModalLeftBottom>
+            </ModalLeft>
+            <ModalRight>
+              <ModalRightTopHeader>
+                <AccessTimeIcon />
+                &nbsp;
+                <span>요일별 예약 가능한 시간</span>
+              </ModalRightTopHeader>
+              {reservationTimeInfo.map((info, index) => (
+                <div key={index}>
+                  <TimeRow>
+                    <DayLabel>{dayOfWeek[index]}</DayLabel>
+                    <AddCircleOutlineIcon
+                      onClick={() => handleAddTime(index)}
+                      style={{
+                        cursor: "pointer",
+                        marginTop: "5px",
+                        fontSize: "20px",
+                        color: "#1e2b47",
+                      }}
+                    />
+                    {info.startTime && info.endTime && (
+                      <DatePickerWrapper>
+                        <div>
+                          <DatePicker
+                            selected={
+                              info.startTime ? toDate(info.startTime) : null
+                            }
+                            onChange={(time) =>
+                              handleTime(time, index, "startTime")
+                            }
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={10}
+                            dateFormat="HH:mm"
+                            locale="ko"
+                            customInput={<TimeInput />}
+                          />
+                        </div>
+                        <Span>~</Span>
+                        <div>
+                          <DatePicker
+                            selected={
+                              info.endTime ? toDate(info.endTime) : null
+                            }
+                            onChange={(time) =>
+                              handleTime(time, index, "endTime")
+                            }
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={10}
+                            dateFormat="HH:mm"
+                            locale="ko"
+                            customInput={<TimeInput />}
+                          />
+                        </div>
+                        <ClearIcon
+                          onClick={() => handleClearTime(index)}
+                          style={{
+                            cursor: "pointer",
+                            marginLeft: "15px",
+                            marginTop: "5px",
+                            fontSize: "20px",
+                            color: "#1e2b47",
+                          }}
+                        />
+                      </DatePickerWrapper>
+                    )}
+                  </TimeRow>
+                </div>
+              ))}
+            </ModalRight>
+          </ModalContent>
+          <ModalFooter>
+            <EnrollButton onClick={handleSubmit}>등록하기</EnrollButton>
+          </ModalFooter>
+        </ModalLabel>
+      </ModalWrapper>
     </>
   );
 };

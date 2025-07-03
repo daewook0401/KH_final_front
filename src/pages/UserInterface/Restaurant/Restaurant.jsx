@@ -4,6 +4,10 @@ import Header from "../../../common/Header/Header";
 import KakaoMap from "./KakaoMap";
 import RatingStars from "../../../components/RatingStars";
 import ReviewPage from "../Review/ReviewPage";
+import Reservation from "../Reservation/Reservation";
+import Operatinghours from "../Operatinghours/Operatinghours";
+import Settings from "../Reservation/Settings";
+import useApi from "../../../hooks/useApi";
 
 const StarRating = ({ averageRating, reviewCount }) => {
   const stars = [];
@@ -21,6 +25,7 @@ const StarRating = ({ averageRating, reviewCount }) => {
 
 const Restaurant = () => {
   const { restaurantId } = useParams();
+  const [buttonType, setButtonType] = useState(3);
   const [restaurantData, setRestaurantData] = useState({
     details: null,
     ratingInfo: null,
@@ -28,7 +33,20 @@ const Restaurant = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [openOperatingTime, setOpenOperatingTime] = useState(false);
+  const [openReservationSetting, setOpenReservationSetting] = useState(false);
+  const [openReservation, setOpenReservation] = useState(false);
+  const {
+    header: operatingInfoHd,
+    body: operatingInfoBd,
+    refetch: operatingInfo,
+  } = useApi("/api/operatings", {
+    method: "get",
+    params: {
+      restaurantNo: "2",
+    },
+  });
+  console.log(operatingInfoHd, operatingInfoBd);
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -159,6 +177,16 @@ const Restaurant = () => {
 
   return (
     <>
+      {openOperatingTime && (
+        <Operatinghours setOpenOperatingTime={setOpenOperatingTime} />
+      )}
+      {openReservation && (
+        <Reservation setOpenReservation={setOpenReservation} />
+      )}
+      {openReservationSetting && (
+        <Settings setOpenReservationSetting={setOpenReservationSetting} />
+      )}
+
       <Header />
       <div className="flex max-w-[1200px] my-5 mx-auto p-5 gap-5 font-sans bg-gray-50">
         <main className="flex-[3] flex flex-col gap-8">
@@ -172,9 +200,36 @@ const Restaurant = () => {
               <p className="text-gray-500 text-sm m-0">
                 {details.restaurantCuisineType?.join(", ")}
               </p>
-              <h1 className="mt-1 mb-2 text-3xl font-bold text-gray-800">
-                {details.restaurantName}
-              </h1>
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="mt-1 text-3xl font-bold text-gray-800">
+                  {details.restaurantName}
+                </h1>
+
+                {buttonType === 1 && (
+                  <button
+                    onClick={() => setOpenOperatingTime(true)}
+                    className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold transition-colors hover:bg-[#e66a45] ml-3 shrink-0"
+                  >
+                    운영시간등록
+                  </button>
+                )}
+                {buttonType === 2 && (
+                  <button
+                    onClick={() => setOpenReservationSetting(true)}
+                    className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold transition-colors hover:bg-[#e66a45] ml-3 shrink-0"
+                  >
+                    예약설정 등록
+                  </button>
+                )}
+                {buttonType === 3 && (
+                  <button
+                    onClick={() => setOpenReservation(true)}
+                    className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold transition-colors hover:bg-[#e66a45] ml-3 shrink-0"
+                  >
+                    예약하기
+                  </button>
+                )}
+              </div>
               <StarRating
                 averageRating={ratingInfo.averageRating}
                 reviewCount={ratingInfo.reviewCount}
@@ -188,6 +243,47 @@ const Restaurant = () => {
                   주소 복사
                 </button>
               </div>
+              {operatingInfoBd && operatingInfoBd.items.length > 0 && (
+                <div className="mt-3 p-4 bg-gray-100 rounded shadow-sm">
+                  <h4 className="text-base font-semibold text-gray-700 mb-2">
+                    운영 시간
+                  </h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    {operatingInfoBd.items.map((item, idx) => {
+                      const dayMap = {
+                        Monday: "월",
+                        Tuesday: "화",
+                        Wednesday: "수",
+                        Thursday: "목",
+                        Friday: "금",
+                        Saturday: "토",
+                        Sunday: "일",
+                      };
+                      const dayKor = dayMap[item.weekDay] || item.weekDay;
+
+                      const endTimeDisplay =
+                        item.endTime >= "24:00"
+                          ? `${parseInt(item.endTime.split(":")[0], 10) - 24}:${
+                              item.endTime.split(":")[1]
+                            }`
+                          : item.endTime;
+
+                      return (
+                        <li key={idx}>
+                          <span className="font-medium">{dayKor}</span>{" "}
+                          {item.startTime} ~ {item.endTime}
+                          {item.breakStartTime && item.breakEndTime && (
+                            <span className="ml-2 text-gray-500">
+                              (브레이크 {item.breakStartTime} ~{" "}
+                              {item.breakEndTime})
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           </section>
 
