@@ -25,7 +25,7 @@ const StarRating = ({ averageRating, reviewCount }) => {
 
 const Restaurant = () => {
   const { restaurantId } = useParams();
-  const [buttonType, setButtonType] = useState(1);
+  const [buttonType, setButtonType] = useState(3);
   const [restaurantData, setRestaurantData] = useState({
     details: null,
     ratingInfo: null,
