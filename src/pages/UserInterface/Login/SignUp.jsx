@@ -214,6 +214,8 @@ const SignUp = () => {
     }
     if (profileImage) {
       submissionData.append("memberProFiles", profileImage);
+    } else {
+      submissionData.append("memberProFiles", "NULL");
     }
     signup({
       data: submissionData,
