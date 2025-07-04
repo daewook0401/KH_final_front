@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
-import useApi from "../../../hooks/useApi";
 import InputScore from "../../../components/review/InputScore";
 import ImageUploader from "../../../components/review/ImageUploader";
 import InputReviewContent from "../../../components/review/InputReviewContent";
@@ -9,50 +8,40 @@ import { AuthContext } from "../../../provider/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 function InsertReviewPage({
-  restaurantId,
+  restaurantNo: propRestaurantNo,
   onSubmitSuccess,
   focusReviewTextarea,
   editReview = null,
   cancelEdit,
 }) {
+  const restaurantNo = propRestaurantNo || 1;
+
   const [score, setScore] = useState(0);
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
+  const [billImage, setBillImage] = useState(null);
   const [showBillModal, setShowBillModal] = useState(false);
-  const [pendingSubmission, setPendingSubmission] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const reviewTextareaRef = useRef(null);
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const memberNickname = sessionStorage.getItem("memberNickname");
-
-  const {
-    loading,
-    error,
-    refetch: submitReview,
-  } = useApi(
-    editReview ? `/api/reviews/${editReview.reviewNo}` : "/api/reviews",
-    {
-      method: editReview ? "put" : "post",
-      auth: true,
-      immediate: false,
-    },
-    false
-  );
-
   useEffect(() => {
     if (editReview) {
       setScore(editReview.reviewScore);
       setContent(editReview.reviewContent);
-      if (editReview.photos?.length > 0) {
-        const existingImages = editReview.photos.map((photo) => ({
+      setImages(
+        editReview.photos?.map((photo) => ({
           type: "existing",
           url: photo.reviewPhotoUrl,
-        }));
-        setImages(existingImages);
+        })) || []
+      );
+      if (editReview.billPhotoUrl) {
+        setBillImage(editReview.billPhotoUrl);
       } else {
-        setImages([]);
+        setBillImage(null);
       }
     }
   }, [editReview]);
@@ -76,12 +65,29 @@ function InsertReviewPage({
     }
   };
 
-  const handleFinalSubmit = (billNo) => {
+  const handleVerificationSuccess = (imageFileOrUrl) => {
+    setBillImage(imageFileOrUrl);
+    setShowBillModal(false);
+  };
+
+  const handleFinalSubmit = () => {
+    if (!score) {
+      alert("별점을 입력해주세요.");
+      return;
+    }
+
+    if (!billImage) {
+      alert("영수증 인증이 필요합니다.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     const formData = new FormData();
-    formData.append("restaurantNo", restaurantId);
+    formData.append("restaurantNo", restaurantNo);
     formData.append("reviewScore", score);
     formData.append("reviewContent", content);
-    formData.append("memberNickname", memberNickname);
     formData.append("billPass", "Y");
 
     images.forEach((image) => {
@@ -90,48 +96,65 @@ function InsertReviewPage({
       }
     });
 
-    submitReview({
+    if (billImage) {
+      if (typeof billImage === "string") {
+        formData.append("billImageUrl", billImage);
+      } else {
+        formData.append("billImageFile", billImage);
+      }
+    }
+
+    // 데이터가 잘 넘어가는지 확인용 콘솔 출력
+    console.log("=== 제출 데이터 확인 ===");
+    for (let pair of formData.entries()) {
+      console.log(pair[0], ":", pair[1]);
+    }
+
+    /*
+    const reviewUrl = editReview
+      ? `/api/reviews/${editReview.reviewNo}`
+      : "/api/reviews";
+
+    axios({
+      method: editReview ? "put" : "post",
+      url: reviewUrl,
       data: formData,
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      withCredentials: true,
     })
-      .then((res) => {
-        alert(editReview ? "리뷰가 수정되었습니다!" : "리뷰가 등록되었습니다!");
-
-        const reviewNo = res.data.reviewNo;
-
-        if (billNo && reviewNo) {
-          return axios.put("/api/bills/connect", {
-            billNo,
-            reviewNo,
-          });
-        }
-      })
       .then(() => {
+        alert(editReview ? "리뷰가 수정되었습니다!" : "리뷰가 등록되었습니다!");
         setScore(0);
         setContent("");
         setImages([]);
+        setBillImage(null);
         cancelEdit?.();
         onSubmitSuccess?.();
       })
       .catch((err) => {
         console.error("리뷰 제출 오류:", err.response?.data || err.message);
-        alert("리뷰 작성 중 문제가 발생했습니다.");
+        setError("리뷰 작성 중 문제가 발생했습니다.");
+      })
+      .finally(() => {
+        setLoading(false);
       });
+    */
+
+    // 임시로 로딩 상태 해제
+    setLoading(false);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     requireLogin(() => {
-      setShowBillModal(true);
-      setPendingSubmission(true);
+      if (!billImage) {
+        alert("영수증 인증이 필요합니다.");
+      } else {
+        handleFinalSubmit();
+      }
     });
-  };
-
-  const handleVerificationSuccess = (billNo) => {
-    if (pendingSubmission) {
-      setPendingSubmission(false);
-      handleFinalSubmit(billNo);
-    }
   };
 
   return (
@@ -150,19 +173,26 @@ function InsertReviewPage({
             onChange={(e) => setContent(e.target.value)}
           />
 
-          <div className="flex justify-start">
-            {editReview && (
-              <button
-                type="button"
-                className="w-32 text-gray-700 bg-white border border-gray-300 py-2 rounded-2xl hover:bg-gray-100"
-                onClick={cancelEdit}
+          <div className="flex justify-end items-center space-x-3 mt-4">
+            {billImage && (
+              <span
+                className="text-green-600 text-2xl font-bold select-none"
+                title="영수증 인증 완료"
               >
-                취소
-              </button>
+                ✓
+              </span>
             )}
-          </div>
 
-          <div className="flex justify-end">
+            <button
+              type="button"
+              className="bg-blue-500 text-white py-2 px-4 rounded-2xl hover:bg-blue-600"
+              onClick={() => {
+                requireLogin(() => setShowBillModal(true));
+              }}
+            >
+              영수증 인증
+            </button>
+
             <button
               type="submit"
               disabled={loading}
@@ -172,20 +202,25 @@ function InsertReviewPage({
             </button>
           </div>
 
-          {error && (
-            <p className="text-red-500">
-              오류가 발생했습니다. 다시 시도해주세요.
-            </p>
+          {editReview && (
+            <div className="flex justify-start">
+              <button
+                type="button"
+                className="w-32 text-gray-700 bg-white border border-gray-300 py-2 rounded-2xl hover:bg-gray-100"
+                onClick={cancelEdit}
+              >
+                취소
+              </button>
+            </div>
           )}
+
+          {error && <p className="text-red-500">{error}</p>}
         </form>
       </div>
 
       <BillVerification
         isOpen={showBillModal}
-        onClose={() => {
-          setShowBillModal(false);
-          setPendingSubmission(false);
-        }}
+        onClose={() => setShowBillModal(false)}
         onVerified={handleVerificationSuccess}
       />
     </div>

@@ -1,12 +1,16 @@
-import { useState, useRef } from "react";
-import axios from "axios";
+import { useState, useRef, useEffect } from "react";
 
-function BillVerification({ isOpen, onClose, onRegistered }) {
+function BillVerification({ isOpen, onClose, onVerified }) {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const handleFile = (file) => {
     if (!file.type.startsWith("image/")) {
@@ -20,7 +24,7 @@ function BillVerification({ isOpen, onClose, onRegistered }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) handleFile(file);
-    e.target.value = null; // 같은 파일 재선택 방지
+    e.target.value = null;
   };
 
   const handleDrop = (e) => {
@@ -52,27 +56,9 @@ function BillVerification({ isOpen, onClose, onRegistered }) {
       alert("이미지를 업로드해주세요.");
       return;
     }
-
-    const formData = new FormData();
-    formData.append("billPhoto", image);
-
-    setLoading(true);
-
-    axios
-      .post("/api/bills", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then((res) => {
-        alert("영수증이 등록되었습니다!");
-        const billNo = res.data.billNo; // 백엔드가 billNo 반환한다고 가정
-        onRegistered(billNo);
-        onClose();
-      })
-      .catch((error) => {
-        console.error("영수증 등록 실패:", error);
-        alert("영수증 등록에 실패했습니다.");
-      })
-      .finally(() => setLoading(false));
+    // 이미지 파일 자체를 부모에게 넘김
+    onVerified(image);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -124,16 +110,14 @@ function BillVerification({ isOpen, onClose, onRegistered }) {
               setPreview(null);
               onClose();
             }}
-            disabled={loading}
           >
             취소
           </button>
           <button
             className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600"
             onClick={handleSubmit}
-            disabled={loading}
           >
-            {loading ? "확인 중..." : "인증 제출"}
+            인증 완료
           </button>
         </div>
       </div>

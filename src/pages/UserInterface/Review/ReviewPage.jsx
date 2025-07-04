@@ -6,10 +6,9 @@ import ReviewItem from "../../../components/review/ReviewItem";
 import SortSelector from "../../../components/review/SortSelector";
 import Pagination from "../../../components/Pagination/Pagination";
 import MyReview from "../../../components/review/MyReview";
-import useApi from "../../../hooks/useApi";
 import InsertReviewPage from "./InsertReviewPage";
 
-function ReviewPage({ restaurantNo }) {
+function ReviewPage({ restaurantNo: propRestaurantNo }) {
   const navigate = useNavigate();
   const { auth } = useContext(AuthContext);
   const user = auth.loginInfo;
@@ -20,17 +19,33 @@ function ReviewPage({ restaurantNo }) {
   const [sortKey, setSortKey] = useState("ratingDesc");
   const [currentPage, setCurrentPage] = useState(1);
   const [focusReviewTextarea, setFocusReviewTextarea] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const {
-    body: reviews = [],
-    loading,
-    error,
-    refetch,
-  } = useApi(
-    `/restaurants/${restaurantNo}/reviews?page=${currentPage}`,
-    {},
-    !!restaurantNo
-  );
+  // ✅ restaurantNo 강제 설정
+  const restaurantNo = propRestaurantNo || 1;
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    console.log("리뷰 요청 보냄 - restaurantNo:", restaurantNo);
+
+    axios
+      .get(`/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
+      .then((res) => {
+        console.log("리뷰 받아옴:", res.data);
+        setReviews(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch((err) => {
+        console.error("리뷰 요청 실패:", err);
+        setError(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [restaurantNo, currentPage]);
 
   const safeReviews = Array.isArray(reviews) ? reviews : [];
   const myReviews = safeReviews.filter(
@@ -91,7 +106,13 @@ function ReviewPage({ restaurantNo }) {
       })
       .then(() => {
         alert("리뷰가 삭제되었습니다.");
-        refetch();
+        // 다시 불러오기
+        return axios.get(
+          `/restaurants/${restaurantNo}/reviews?page=${currentPage}`
+        );
+      })
+      .then((res) => {
+        setReviews(Array.isArray(res.data) ? res.data : []);
       })
       .catch((error) => {
         alert("리뷰 삭제 실패");
@@ -126,13 +147,26 @@ function ReviewPage({ restaurantNo }) {
       <InsertReviewPage
         restaurantId={restaurantNo}
         onSubmitSuccess={() => {
-          refetch();
-          setCurrentPage(1);
+          axios
+            .get(`/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
+            .then((res) => {
+              setReviews(Array.isArray(res.data) ? res.data : []);
+              setCurrentPage(1);
+            })
+            .catch((err) => {
+              console.error("리뷰 새로고침 실패:", err);
+            });
         }}
         focusReviewTextarea={focusReviewTextarea}
       />
 
-      {totalItems === 0 ? (
+      {loading ? (
+        <div className="text-center text-gray-500">불러오는 중...</div>
+      ) : error ? (
+        <div className="text-center text-red-500">
+          리뷰를 불러오지 못했습니다.
+        </div>
+      ) : totalItems === 0 ? (
         <div className="text-center bg-gray-200 rounded text-gray-500 py-10">
           등록된 리뷰가 없습니다.
         </div>
