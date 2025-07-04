@@ -45,7 +45,13 @@ const Operatinghours = ({ setOpenOperatingTime }) => {
     "Saturday",
     "Sunday",
   ];
-  const { header, body, error, loading, refetch } = useApi(
+  const {
+    header,
+    body,
+    error: error,
+    loading,
+    refetch,
+  } = useApi(
     "/api/operatings",
     {
       method: "post",
@@ -180,7 +186,9 @@ const Operatinghours = ({ setOpenOperatingTime }) => {
     console.log(update);
     refetch({ data: update });
   };
-
+  if (error) {
+    alert(error);
+  }
   // ──────────────────────────────────────────────────────────────────────
   return (
     <ModalWrapper>

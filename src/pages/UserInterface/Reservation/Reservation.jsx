@@ -7,6 +7,9 @@ import useApi from "../../../hooks/useApi";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useEffect } from "react";
+import axios from "axios";
+import AuthContext from "../../../provider/AuthContext";
+import { useContext } from "react";
 import {
   CloseBtn,
   CountBox,
@@ -32,57 +35,79 @@ const Reservation = ({ setOpenReservation }) => {
   const [selectedCount, setSelectedCount] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [restaurantNo, setRestaurantNo] = useState("2");
-  const [minPeople, setMinPeople] = useState(2); // 예시값
-  const [maxPeople, setMaxPeople] = useState(7);
+  const [minPeople, setMinPeople] = useState(null); // 예시값
+  const [maxPeople, setMaxPeople] = useState(null);
   const [times, setTimes] = useState({});
-
-  const {
-    header: reservationInfoHd,
-    body: reservationInfoBd,
-    error,
-    loading,
-    refetch,
-  } = useApi("/api/reservation/info", {
-    method: "get",
-    params: {
-      restaurantNo: restaurantNo,
-    },
-  });
-
-  const {
-    header: avilableTimeHd,
-    body: avilableTimeBd,
-    refetch: avilableTime,
-  } = useApi("/api/reservation", {
-    method: "get",
-    params: {
-      restaurantNo: restaurantNo,
-      reserveDay: selectedDate
-        .toLocaleDateString("ko-KR")
-        .replace(/. /g, "-")
-        .replace(".", ""),
-    },
-  });
+  const { auth } = useContext(AuthContext);
+  const accessToken = auth?.tokens?.accessToken;
+  const apiUrl = window.ENV?.API_URL || "http://localhost:80";
+  useEffect(() => {
+    axios
+      .get(`${apiUrl}/api/reservation/info`, {
+        params: { restaurantNo },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        console.log("result :", res.data);
+        setMinPeople(res.data.body.items.minNum);
+        setMaxPeople(res.data.body.items.maxNum);
+      })
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
-    avilableTime({
-      params: {
-        restaurantNo: restaurantNo,
-        reserveDay: selectedDate.toISOString().slice(0, 10),
-      },
-    });
-    if (reservationInfoBd) {
-      setMaxPeople(reservationInfoBd.items.maxNum);
-      setMinPeople(reservationInfoBd.items.minNum);
-    }
-    if (avilableTimeBd) {
-      setTimes(avilableTimeBd.items.resultMap);
-    }
-  }, [selectedDate]);
+    axios
+      .get("/api/reservation", {
+        // baseURL 이미 설정돼 있죠?
+        params: {
+          restaurantNo,
+          reserveDay: selectedDate.toISOString().slice(0, 10), // "YYYY-MM-DD"
+        },
+      })
+      .then((res) => {
+        console.log("예약 가능한 시간들 :", res.data);
+        setTimes(res.data.body.items.resultMap);
+      })
+      .catch(console.error);
+  }, [restaurantNo, selectedDate]);
 
-  const dateHandler = (date) => {
-    setSelectedDate(date);
-  };
+  // useEffect(() => {
+  //   if (reservationInfoBd) {
+  //     setMaxPeople(reservationInfoBd.items.maxNum);
+  //     setMinPeople(reservationInfoBd.items.minNum);
+  //   }
+  //   if (avilableTimeBd) {
+  //     setTimes(avilableTimeBd.items.resultMap);
+  //   }
+  //   avilableTime();
+  // }, [selectedDate]);
+
+  // const {
+  //   header: reservationInfoHd,
+  //   body: reservationInfoBd,
+  //   refetch: avilable,
+  //   error,
+  //   loading,
+  // } = useApi("/api/reservation/info", {
+  //   method: "get",
+  //   params: {
+  //     restaurantNo: restaurantNo,
+  //   },
+  // });
+
+  // const {
+  //   header: avilableTimeHd,
+  //   body: avilableTimeBd,
+  //   refetch: avilableTime,
+  // } = useApi("/api/reservation", {
+  //   method: "get",
+  //   params: {
+  //     restaurantNo: restaurantNo,
+  //     reserveDay: selectedDate.toISOString().slice(0, 10),
+  //   },
+  // });
 
   const handleSubmit = () => {
     refetch({
@@ -90,17 +115,17 @@ const Reservation = ({ setOpenReservation }) => {
       method: "post",
       data: {
         restaurantNo: restaurantNo,
-        reserveDay: selectedDate
-          .toLocaleDateString("ko-KR")
-          .replace(/. /g, "-")
-          .replace(".", ""),
+        reserveDay: selectedDate.toISOString().slice(0, 10),
         numberOfGuests: selectedCount,
         reserveTime: selectedTime,
       },
     });
   };
-  console.log(reservationInfoHd, reservationInfoBd);
-  console.log(avilableTimeHd, avilableTimeBd);
+
+  const dateHandler = (date) => {
+    setSelectedDate(date);
+  };
+
   return (
     <>
       <ModalWrapper>
