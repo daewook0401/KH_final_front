@@ -25,9 +25,7 @@ export const AuthProvider = ({ children }) => {
             login(res.data.body.items.loginInfo, res.data.body.items.tokens, sessionStorage.getItem("socialLoginState"), sessionStorage.getItem("longTimeAuth"));
           }})
         .catch(err => {
-          if (err.response?.status === 401) {
-            setAuth();
-          }
+          console.error(err);
         }).finally(()=>{
           setReady(true);
         })
