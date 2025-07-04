@@ -14,7 +14,10 @@ import SignUp from "./pages/UserInterface/Login/SignUp";
 import InsertReviewPage from "./pages/UserInterface/Review/InsertReviewPage";
 import Operatinghours from "./pages/UserInterface/Operatinghours/Operatinghours";
 import Test from "./pages/UserInterface/Login/test";
+import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
+
 import "./api/AxiosInterCeptor";
+import PopupCallback from "./pages/UserInterface/Login/PopupCallback";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -33,9 +36,12 @@ function App() {
           <Route path="/operatinghours" element={<Operatinghours />} />
           <Route path="/reservation" element={<Reservation />} />
           <Route path="/settings" element={<Settings />} />
+
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
           <Route path="/sign-up" element={<SignUp />} />
+
           <Route path="/test" element={<Test />} />
         </Routes>
       </AuthProvider>

@@ -4,7 +4,7 @@ import { nameRegex, nickRegex } from "../../../components/Regex";
 import useApi from "../../../hooks/useApi";
 import { useNavigate } from "react-router-dom";
 
-const test = () => {
+const SocialInfo = () => {
   const [formData, setFormData] = useState({
     memberName: "",
     memberNickName: ""
@@ -211,4 +211,4 @@ const test = () => {
     </>
   );
 };
-export default test;
+export default SocialInfo;

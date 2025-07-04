@@ -18,13 +18,11 @@ axios.interceptors.response.use(
   
   response => response,
   async error => {
-    console.log(error);
+    console.log(error.response);
     const originalReq = error.config;
-    let refreshToken = null;
     if (
       (error.response?.status === 401 || error.response?.status === 403) &&
-      !originalReq._retry &&
-      !originalReq.url.includes("/api/auth/refresh")
+      !originalReq._retry && !originalReq.url?.includes("/api/auth/refresh")
     ) {
       originalReq._retry = true;
       try {
@@ -32,12 +30,12 @@ axios.interceptors.response.use(
           "/api/auth/refresh",
           {},
           {
-            headers: { Authorization: `Bearer ${refreshToken}` },
+            headers: { Authorization: `Bearer ${sessionStorage.getItem('refreshToken')}` },
             withCredentials: true
           }
         );
         if (wrap.data.header.code[0] !== 'S' ){
-          const msg = header.message || "토큰 갱신 실패";
+          const msg = wrap.data.header.message || "토큰 갱신 실패";
           return Promise.reject(new Error(msg));
         }
         const newTokens = wrap.data.body.items.tokens;

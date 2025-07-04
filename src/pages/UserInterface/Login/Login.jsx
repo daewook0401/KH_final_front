@@ -1,9 +1,14 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../../../common/Header/Header"; // 이 컴포넌트는 사용자 환경에 맞게 있어야 합니다.
 import useApi from "../../../hooks/useApi";
 import { idRegex, pwRegex } from "../../../components/Regex";
 import { AuthContext } from "../../../provider/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
+import {
+  CustomGoogleLoginForm,
+  CustomKakaoLoginForm,
+} from "../../../components/Button/CustomLoginForm";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -82,20 +87,9 @@ const Login = () => {
           <h1 className="text-2xl font-bold text-center text-red-500">
             로그인
           </h1>
-
-          <div className="space-y-2">
-            <button
-              onClick={() => handleSocialLogin("kakao")}
-              className="w-full py-3 font-bold text-black bg-yellow-400 rounded-md"
-            >
-              카카오 로그인
-            </button>
-            <button
-              onClick={() => handleSocialLogin("google")}
-              className="w-full py-3 font-bold text-white bg-blue-500 rounded-md"
-            >
-              구글 로그인
-            </button>
+          <div className="flex flex-col justify-center-safe space-y-2">
+            <CustomKakaoLoginForm />
+            <CustomGoogleLoginForm />
           </div>
 
           <div className="my-4"></div>
