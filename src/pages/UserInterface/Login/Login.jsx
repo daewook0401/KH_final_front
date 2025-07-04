@@ -1,9 +1,11 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../../../common/Header/Header"; // 이 컴포넌트는 사용자 환경에 맞게 있어야 합니다.
 import useApi from "../../../hooks/useApi";
 import { idRegex, pwRegex } from "../../../components/Regex";
 import { AuthContext } from "../../../provider/AuthContext";
+import { GoogleLogin } from '@react-oauth/google';
+import {CustomGoogleLoginForm, CustomKakaoLoginForm} from "../../../components/Button/CustomLoginForm";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -29,9 +31,11 @@ const Login = () => {
     const { memberId, memberPw, authLogin} = formData;
     
     if (!idRegex.test(memberId)){
+      alert("아이디는 소문자 영문과 숫자를 포함하여 4~20자 이내여야 합니다. 숫자만으로는 구성할 수 없습니다.");
       return;
     }
     if (!pwRegex.test(memberPw)){
+      alert("비밀번호는 대소문자, 숫자, 특수문자 중 3가지 이상을 포함해야 합니다.")
       return;
     }
     console.log(formData.memberId, formData.memberPw, longTimeAuth);
@@ -49,17 +53,25 @@ const Login = () => {
         login(body.items.loginInfo, body.items.tokens, false, longTimeAuth);
         navigate(-1);
       } else {
-        alert(`로그인 실패: ErrorCode ${header.code}`);
+        alert(`${header.message}`);
       }
     }).catch((err) => {
       alert(err);
     })
   }
-  const handleSocialLogin = (provider) => {
-    alert(
-      `${provider} 로그인은 현재 데모 상태입니다. 실제 구현 시에는 해당 소셜 로그인 API를 사용해야 합니다.`
-    );
-  };
+  // App.jsx or LoginPage.jsx
+  useEffect(() => {
+    const handler = async e => {
+      if (!e.data.code) return;
+      const resp = await axios.get('/oauth2/kakao/callback', {
+        params: { code: e.data.code }
+      });
+      // resp.data 에 { accessToken, refreshToken, userEmail… }
+      // sessionStorage 저장, 리다이렉트 등 처리
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
 
   return (
     <>
@@ -69,20 +81,9 @@ const Login = () => {
           <h1 className="text-2xl font-bold text-center text-red-500">
             로그인
           </h1>
-
-          <div className="space-y-2">
-            <button
-              onClick={() => handleSocialLogin("kakao")}
-              className="w-full py-3 font-bold text-black bg-yellow-400 rounded-md"
-            >
-              카카오 로그인
-            </button>
-            <button
-              onClick={() => handleSocialLogin("google")}
-              className="w-full py-3 font-bold text-white bg-blue-500 rounded-md"
-            >
-              구글 로그인
-            </button>
+          <div className="flex flex-col justify-center-safe space-y-2">
+            <CustomKakaoLoginForm />
+            <CustomGoogleLoginForm />
           </div>
 
           <div className="my-4"></div>
