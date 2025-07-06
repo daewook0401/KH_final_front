@@ -11,8 +11,6 @@ const PasswordConfirmModal = () => {
 
   return (
     <>
-    <Header/>
-
     <div className="min-h-screen bg-orange-50 flex justify-center items-center">
       <div className="bg-white border border-orange-200 shadow-md rounded-lg w-full max-w-md px-10 py-12 text-center">
         <h2 className="text-xl font-bold text-gray-800 mb-6">비밀번호 확인</h2>
