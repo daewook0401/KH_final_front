@@ -1,17 +1,24 @@
 import React from "react";
+import useApi from "../../../hooks/useApi";
 
 const ProfileCard = ({ onEditClick }) => {
+  const {header, body, error, loading, refetch: profileApi} = useApi('/api/member/mypage-info', { method: 'post' });
+  
+  if(loading){
+    return <p>로딩 중</p>
+  }
   return (
+    
     <div className="bg-white shadow rounded-lg p-6 flex items-center gap-6">
       <img
-        src="/images/profile-default.png"
+        src={body.items.memberSelfie}
         alt="프로필"
         className="w-24 h-24 rounded-full object-cover"
       />
       <div className="flex-1">
-        <p className="text-lg font-semibold">김대욱</p>
-        <p className="text-gray-500">test@example.com</p>
-        <p className="text-gray-500">닉네임: 시발좋은카카오</p>
+        <p className="text-lg font-semibold">{body.items.memberName}</p>
+        <p className="text-gray-500">{body.items.memberEmail}</p>
+        <p className="text-gray-500">{body.items.memberNickName}</p>
       </div>
       <button
         onClick={onEditClick}
