@@ -30,7 +30,7 @@ import {
   ModalWrapper,
   TimeBox,
 } from "./ReservationStyles";
-const Reservation = ({ setOpenReservation }) => {
+const Reservation = ({ setOpenReservation, refetchMyReservation }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedCount, setSelectedCount] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -41,6 +41,7 @@ const Reservation = ({ setOpenReservation }) => {
   const { auth } = useContext(AuthContext);
   const accessToken = auth?.tokens?.accessToken;
   const apiUrl = window.ENV?.API_URL || "http://localhost:80";
+
   useEffect(() => {
     axios
       .get(`${apiUrl}/api/reservation/info`, {
@@ -60,10 +61,9 @@ const Reservation = ({ setOpenReservation }) => {
   useEffect(() => {
     axios
       .get("/api/reservation", {
-        // baseURL 이미 설정돼 있죠?
         params: {
           restaurantNo,
-          reserveDay: selectedDate.toISOString().slice(0, 10), // "YYYY-MM-DD"
+          reserveDay: selectedDate.toISOString().slice(0, 10),
         },
       })
       .then((res) => {
@@ -110,16 +110,20 @@ const Reservation = ({ setOpenReservation }) => {
   // });
 
   const handleSubmit = () => {
-    refetch({
-      url: "/api/reservation",
-      method: "post",
-      data: {
+    axios
+      .post("/api/reservation", {
         restaurantNo: restaurantNo,
         reserveDay: selectedDate.toISOString().slice(0, 10),
         numberOfGuests: selectedCount,
         reserveTime: selectedTime,
-      },
-    });
+      })
+      .then((res) => {
+        console.log(res);
+        alert("예약이 등록되었습니다!");
+        setOpenReservation(false);
+        refetchMyReservation();
+      })
+      .catch(console.error);
   };
 
   const dateHandler = (date) => {

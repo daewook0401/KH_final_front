@@ -119,7 +119,7 @@ const CategorySection = ({ title, restaurants }) => {
 
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("검색어:", keyword);
@@ -128,7 +128,6 @@ const Main = () => {
 
   return (
     <>
-      <Header />
       <div className="max-w-[960px] mx-auto py-8 px-4 bg-[#fde4d7]">
         <section className="bg-gradient-to-br from-[#ffa868] to-[#ffaa6b] text-white text-center py-10 px-5 rounded-xl">
           <h1 className="mb-6 text-[1.6rem] font-bold leading-tight">
