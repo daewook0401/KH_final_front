@@ -5,6 +5,7 @@ function ImageGallery({ images = [] }) {
   const [expanded, setExpanded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
 
+  // 보여줄 이미지 배열 (최대 4개, 아니면 모두)
   const toShow = expanded ? images : images.slice(0, 4);
   const remaining = images.length - 4;
 
@@ -29,7 +30,7 @@ function ImageGallery({ images = [] }) {
                 }`
           }
         >
-          {toShow.map((src, idx) => {
+          {toShow.map((photoObj, idx) => {
             const isOverlaySlot = !expanded && idx === 3 && images.length > 4;
 
             return (
@@ -47,7 +48,7 @@ function ImageGallery({ images = [] }) {
                 }
               >
                 <img
-                  src={src}
+                  src={photoObj.reviewPhotoUrl}
                   alt={`img-${idx}`}
                   className={`object-cover w-full h-full transition-transform duration-200 ${
                     isOverlaySlot ? "blur-sm brightness-50" : "hover:scale-105"
@@ -71,7 +72,7 @@ function ImageGallery({ images = [] }) {
       </div>
 
       <ImageModal
-        images={images}
+        images={images.map((img) => img.reviewPhotoUrl)}
         currentIndex={currentIndex}
         onClose={closeModal}
         onPrev={handlePrev}

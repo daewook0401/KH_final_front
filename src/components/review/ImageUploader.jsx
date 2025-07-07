@@ -9,8 +9,12 @@ const ImageUploader = ({ images, setImages }) => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setImages((prev) => [...prev, ...urls]);
+    const newImages = files.map((file) => ({
+      type: "new",
+      file,
+      url: URL.createObjectURL(file),
+    }));
+    setImages((prev) => [...prev, ...newImages]);
   };
 
   const handleButtonClick = () => {
@@ -45,7 +49,7 @@ const ImageUploader = ({ images, setImages }) => {
         onMouseLeave={stopDrag}
         onMouseUp={stopDrag}
         onMouseMove={onDrag}
-        className="overflow-x-auto flex gap-2 pr-14 no-scrollbar rounded-xl shadow-md bg-white cursor-grab active:cursor-grabbing select-none"
+        className="w-full max-w-full overflow-x-auto flex flex-nowrap gap-2 pr-14 no-scrollbar rounded-xl shadow-md bg-white cursor-grab active:cursor-grabbing select-none"
       >
         {images.length === 0 && (
           <div className="text-gray-400 italic py-6 px-4 w-full text-center">
@@ -53,13 +57,13 @@ const ImageUploader = ({ images, setImages }) => {
           </div>
         )}
 
-        {images.map((src, i) => (
+        {images.map((image, i) => (
           <div key={i} className="relative w-32 h-32 flex-shrink-0">
             <img
-              src={src}
+              src={image.url}
               draggable={false}
               alt={`uploaded-${i}`}
-              className="w-full h-full object-fill rounded bg-gray-100"
+              className="w-full h-full object-cover rounded bg-gray-100"
             />
             <button
               type="button"
@@ -85,7 +89,7 @@ const ImageUploader = ({ images, setImages }) => {
       <button
         type="button"
         onClick={handleButtonClick}
-        className="absolute right-2 bottom-2 w-10 h-10 rounded-full bg-sky-300 hover:bg-sky-500 text-white shadow flex items-center justify-center transition"
+        className="absolute right-2 bottom-2 w-10 h-10 rounded-full bg-orange-300 hover:bg-orange-500 text-white shadow flex items-center justify-center transition"
         aria-label="이미지 업로드"
       >
         <svg

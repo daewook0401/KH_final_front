@@ -31,6 +31,7 @@ import Header from "./common/Header/Header";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
 import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
+import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -75,6 +76,7 @@ function App() {
           <Route path="/admin" element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="main" element={<AdminMain />} />
+              <Route path="users" element={<AdminUserManagement />} />
               <Route path="chatting" element={<AdminChatPage />} />
               <Route path="reservations" element={<AdminReservation />} />
             </Route>

@@ -50,6 +50,24 @@ export const AuthProvider = ({ children }) => {
     [auth]
   );
   useEffect(() => {
+    const loginInfo = JSON.parse(sessionStorage.getItem("loginInfo"))
+    if (loginInfo !== null && loginInfo.isActive === "N"){
+      alert("비활성 사용자입니다. 로그아웃 됩니다.");
+      setAuth({
+        loginInfo: null,
+        tokens: null,
+        isAuthenticated: false,
+        socialLoginState: false,
+        longTimeAuth: false,
+      });
+      sessionStorage.removeItem("loginInfo");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("isAuthenticated");
+      sessionStorage.removeItem("socialLoginState");
+      sessionStorage.removeItem("longTimeAuth");
+      navigate("/");
+    }
     if (sessionStorage.getItem("socialLoginState") ==="true" && auth.loginInfo?.isModify === "N") {
       navigate("/social-info", { replace: true });
     }
