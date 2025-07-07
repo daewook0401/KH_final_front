@@ -81,9 +81,10 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem("loginInfo");
       sessionStorage.removeItem("refreshToken");
       sessionStorage.removeItem("accessToken");
-      sessionStorage.setItem("isAuthenticated");
-      sessionStorage.setItem("socialLoginState");
-      sessionStorage.setItem("longTimeAuth");
+      sessionStorage.removeItem("isAuthenticated");
+      sessionStorage.removeItem("socialLoginState");
+      sessionStorage.removeItem("longTimeAuth");
+      navigate("/");
     })
   };
   if (!ready){
