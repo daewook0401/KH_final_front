@@ -47,9 +47,7 @@ export const ModalRight = ({ children }) => (
 );
 
 export const ModalRightTop = ({ children }) => (
-  <div className="w-[80%] h-[40%] flex items-center justify-center">
-    {children}
-  </div>
+  <div className="w-[80%] h-[40%]">{children}</div>
 );
 
 export const CountBox = ({ isSelected, children, ...props }) => (
@@ -67,9 +65,7 @@ export const CountBox = ({ isSelected, children, ...props }) => (
   </button>
 );
 export const ModalRightBottom = ({ children }) => (
-  <div className="w-[80%] h-[60%] flex items-center justify-center">
-    {children}
-  </div>
+  <div className="w-[80%] h-[60%]">{children}</div>
 );
 
 export const TimeBox = CountBox; // 동일한 구조로 재사용 가능

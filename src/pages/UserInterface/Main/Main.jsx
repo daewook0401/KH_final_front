@@ -38,11 +38,11 @@ const CategorySection = ({ title, restaurants, loading, error }) => {
       <h2 className="text-2xl font-bold mb-4">
         <div className="flex justify-between items-center">
           <span>{title}</span>
-          <button className="cursor-pointer text-sm font-bold text-gray-800 hover:text-gray-500 text-[25px]">
+          <button className="text-[25px] font-bold text-gray-800 hover:text-gray-500">
             더보기
           </button>
         </div>
-        <div className="text-sm text-[#fc742f] text-[25px]">추천맛집</div>
+        <div className="text-[25px] text-[#fc742f] text-sm">추천맛집</div>
       </h2>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
         {restaurants?.map(({ name, imageUrl, restaurant_no }) => (
@@ -52,7 +52,7 @@ const CategorySection = ({ title, restaurants, loading, error }) => {
             className="border border-gray-200 rounded-lg overflow-hidden text-center bg-white transition-shadow duration-200 ease-in-out hover:shadow-lg cursor-pointer"
           >
             <img
-              src={imageUrl || defaultImage}
+              src={imageUrl}
               alt={name}
               onError={(e) => (e.target.src = defaultImage)}
               className="w-full aspect-[4/3] object-cover"
@@ -105,7 +105,6 @@ const Main = () => {
 
   return (
     <>
-      <Header />
       <div className="max-w-[960px] mx-auto py-8 px-4 bg-[#fde4d7]">
         {/* 상단 검색 및 카테고리 버튼 영역 (생략) */}
         <section className="bg-gradient-to-br from-[#ffa868] to-[#ffaa6b] text-white text-center py-10 px-5 rounded-xl">
@@ -114,7 +113,7 @@ const Main = () => {
           </h1>
           <form
             onSubmit={handleSubmit}
-            className="flex w-full max-w-sm mx-auto mb-6 bg-white rounded-full overflow-hidden"
+            className="mx-auto mb-6 flex w-full max-w-sm overflow-hidden rounded-full bg-white"
           >
             <span className="flex items-center px-3 text-[#ff7750]">
               <FiMapPin size={18} />
@@ -127,7 +126,7 @@ const Main = () => {
             />
             <button
               type="submit"
-              className="bg-[#ff5a3c] text-white px-6 font-semibold border-none cursor-pointer"
+              className="cursor-pointer border-none bg-[#ff5a3c] px-6 font-semibold text-white"
             >
               검색
             </button>
@@ -136,7 +135,7 @@ const Main = () => {
             {ALL_CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                className="border-none bg-white text-gray-700 py-1.5 px-3.5 rounded-full text-sm cursor-pointer transition-colors duration-150 hover:bg-[#ffe2d1]"
+                className="cursor-pointer rounded-full bg-white py-1.5 px-3.5 text-sm font-medium text-gray-700 transition-colors hover:bg-[#ffe2d1]"
               >
                 {cat}
               </button>

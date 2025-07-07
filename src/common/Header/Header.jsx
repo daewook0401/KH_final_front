@@ -6,28 +6,11 @@ import { AuthContext } from "../../provider/AuthContext";
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useContext(AuthContext);
-
-  const handleLogoClick = () => {
-    navigate("/");
-  };
-
-  // '마이페이지' 또는 '로그인' 버튼 클릭 시 동작
-  const handleAuthClick = () => {
-    if (auth.isAuthenticated) {
-      navigate("/mypage");
-    } else {
-      navigate("/login");
-    }
-  };
-
-  // '로그아웃' 또는 '회원가입' 버튼 클릭 시 동작
-  const handleLogoutClick = () => {
-    if (auth.isAuthenticated) {
-      logout(); // 로그아웃 처리
-    } else {
-      navigate("/sign-up");
-    }
-  };
+  const handleLogoClick = () => navigate("/");
+  const handleAuthClick = () =>
+    auth.isAuthenticated ? navigate("/mypage") : navigate("/login");
+  const handleLogoutClick = () =>
+    auth.isAuthenticated ? logout() : navigate("/sign-up");
 
   // '가게 등록' 버튼 클릭 시 동작하는 핸들러 추가
   const handleRegisterClick = () => {
@@ -39,42 +22,41 @@ const Header = () => {
     "mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors";
 
   return (
-    <header className="flex items-center justify-between h-20 bg-[rgba(255,89,0,0.8)]">
-      <div className="flex h-full items-center ml-5">
-        <img
-          src={logoImage}
-          onClick={handleLogoClick}
-          alt="로고"
-          className="cursor-pointer flex h-20 w-20"
-        />
-      </div>
+    <header className="bg-[rgba(255,89,0,0.8)] h-20">
+      {/* 중앙 고정 컨테이너 */}
+      <div
+        className="h-full mx-auto flex items-center justify-between
+                      w-full max-w-6xl min-w-[320px] px-5"
+      >
+        {/* 로고 */}
+        <div className="flex items-center">
+          <img
+            src={logoImage}
+            alt="로고"
+            className="h-16 w-16 cursor-pointer"
+            onClick={handleLogoClick}
+          />
+        </div>
 
-      {/* --- 이 부분이 버튼들을 렌더링하는 핵심 로직입니다 --- */}
-      <div className="button-area flex items-center space-x-4">
-        {auth.isAuthenticated ? (
-          // 로그인 했을 때 보여줄 버튼 3개
-          <>
-            <div onClick={handleRegisterClick} className={buttonStyle}>
-              가게 등록
-            </div>
-            <div onClick={handleAuthClick} className={buttonStyle}>
-              마이페이지
-            </div>
-            <div onClick={handleLogoutClick} className={buttonStyle}>
-              로그아웃
-            </div>
-          </>
-        ) : (
-          // 로그인 안 했을 때 보여줄 버튼 2개
-          <>
-            <div onClick={handleAuthClick} className={buttonStyle}>
-              로그인
-            </div>
-            <div onClick={handleLogoutClick} className={buttonStyle}>
-              회원가입
-            </div>
-          </>
-        )}
+        {/* 버튼 영역 */}
+        <div className="flex items-center space-x-8 text-white font-semibold">
+          <div
+            className="cursor-pointer hover:text-gray-200 transition-colors"
+            onClick={handleAuthClick}
+          >
+            {auth.isAuthenticated
+              ? auth.loginInfo?.memberRole === "ROLE_ADMIN"
+                ? "관리자 페이지"
+                : "마이 페이지"
+              : "로그인"}
+          </div>
+          <div
+            className="cursor-pointer hover:text-gray-200 transition-colors"
+            onClick={handleLogoutClick}
+          >
+            {auth.isAuthenticated ? "로그아웃" : "회원가입"}
+          </div>
+        </div>
       </div>
     </header>
   );
