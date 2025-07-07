@@ -110,13 +110,18 @@ function ReviewPage({ restaurantNo }) {
       })
       .then(() => {
         alert("리뷰가 삭제되었습니다.");
-        return axios.get(
-          `/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`
-        );
-      })
-      .then((res) => {
-        const reviewData = res.data?.body?.items?.reviews;
-        setReviews(Array.isArray(reviewData) ? reviewData : []);
+
+        const nextPage = currentPage > 1 ? currentPage - 1 : 1;
+
+        return axios
+          .get(
+            `/api/restaurants/${restaurantNo}/reviews?page=${nextPage}&_=${Date.now()}`
+          )
+          .then((res) => {
+            const reviewData = res.data?.body?.items?.reviews;
+            setReviews(Array.isArray(reviewData) ? reviewData : []);
+            setCurrentPage(nextPage);
+          });
       })
       .catch((error) => {
         console.error("리뷰 삭제 오류:", error);
