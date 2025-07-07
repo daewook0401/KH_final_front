@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-// 1. useApi 훅을 import 합니다.
-import useApi from "../../../hooks/useApi"; // useApi 훅의 실제 경로로 수정해주세요.
+import { useNavigate } from "react-router-dom";
 import TagSelector from "../../../components/Restaurants/TagSelector";
 import {
   MAIN_CATEGORIES,
   TAG_CATEGORIES,
 } from "../../../components/Restaurants/TagList";
+import useApi from "../../../hooks/useApi";
 
 const RestaurantInsert = () => {
   const [formData, setFormData] = useState({
@@ -26,13 +26,14 @@ const RestaurantInsert = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isPostcodeOpen, setIsPostcodeOpen] = useState(false);
+  const navigate = useNavigate();
 
-  // 2. useApi 훅을 설정합니다.
-  const {
-    loading,
-    error,
-    refetch: registerRestaurant,
-  } = useApi("/api/stores/register", { method: "POST" }, false);
+  // useApi 훅 설정 (POST 방식, 버튼 클릭 시 요청)
+  const { loading, refetch } = useApi(
+    "/api/stores/register",
+    { method: "post" },
+    false
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,32 +82,37 @@ const RestaurantInsert = () => {
     }
   };
 
-  // 3. handleSubmit 함수를 useApi 훅을 사용하도록 수정합니다.
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+
+    // 유효성 검사
     switch (true) {
-      case !formData.mainCategory:
-        alert("대분류를 선택해주세요.");
-        return;
-      case selectedTags.length === 0:
-        alert("태그를 1개 이상 선택해주세요.");
-        return;
-      case !formData.storePhone:
-        alert("전화번호를 입력해주세요.");
-        return;
       case !formData.storeName:
         alert("가게 이름을 입력해주세요.");
         return;
       case !formData.address:
         alert("주소를 입력해주세요.");
         return;
+      case !formData.storePhone:
+        alert("전화번호를 입력해주세요.");
+        return;
       case !formData.storeDescription:
         alert("가게 설명을 입력해주세요.");
+        return;
+      case !formData.mainCategory:
+        alert("대분류를 선택해주세요.");
+        return;
+      case selectedTags.length === 0:
+        alert("태그를 1개 이상 선택해주세요.");
+        return;
+      case !imageFile:
+        alert("가게 대표사진을 등록해주세요.");
         return;
       default:
         break;
     }
 
+    // 서버로 보낼 FormData 준비
     const submissionData = new FormData();
     const cuisineTypes = [formData.mainCategory, ...selectedTags].filter(
       Boolean
@@ -120,77 +126,67 @@ const RestaurantInsert = () => {
     submissionData.append("restaurantPostalCode", formData.postcode);
     submissionData.append("restaurantPhoneNumber", formData.storePhone);
     submissionData.append("restaurantDescription", formData.storeDescription);
-    submissionData.append("restaurantMapX", formData.longitude);
-    submissionData.append("restaurantMapZ", formData.latitude);
-
     cuisineTypes.forEach((type) => {
       submissionData.append("restaurantCuisineType", type);
     });
+    submissionData.append("restaurantMainPhoto", imageFile);
 
-    if (imageFile) {
-      submissionData.append("restaurantMainPhoto", imageFile);
-    }
-
-    registerRestaurant({
+    // refetch 함수를 호출하여 POST 요청 실행
+    refetch({
       data: submissionData,
-    }).then((response) => {
-      if (response) {
-        alert("맛집이 성공적으로 등록되었습니다!");
-        console.log("✅ 등록 완료:", response.body);
-        // 성공 후 폼 초기화 또는 페이지 이동 로직 추가 가능
-      }
-    });
+    })
+      .then((response) => {
+        if (
+          response &&
+          response.header &&
+          response.header.code.startsWith("S100")
+        ) {
+          alert("맛집이 성공적으로 등록되었습니다!");
+          navigate("/"); // 성공 시 홈으로 이동
+        } else {
+          const errorMessage =
+            response?.header?.message || "등록에 실패했습니다.";
+          alert(`맛집 등록 실패: ${errorMessage}`);
+        }
+      })
+      .catch((error) => {
+        console.error("등록 에러:", error);
+        alert(error.message || "알 수 없는 오류가 발생했습니다.");
+      });
   };
-
-  // 4. 에러 처리를 위한 useEffect 추가
-  useEffect(() => {
-    if (error) {
-      const message =
-        error.response?.data?.header?.message ||
-        error.message ||
-        "등록 중 오류가 발생했습니다.";
-      alert(message);
-    }
-  }, [error]);
 
   useEffect(() => {
     if (!isPostcodeOpen) return;
     const elementWrap = document.getElementById("postcode-wrap");
-    const processAddressData = (data) => {
-      const { zonecode, jibunAddress, bcode, sigunguCode } = data;
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      geocoder.addressSearch(jibunAddress, (result, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          setFormData((prev) => ({
-            ...prev,
-            postcode: zonecode,
-            address: jibunAddress,
-            siCode: sigunguCode.substring(0, 2),
-            sigunguCode: sigunguCode,
-            emdCode: bcode,
-            latitude: result[0].y,
-            longitude: result[0].x,
-          }));
-        } else {
-          setFormData((prev) => ({
-            ...prev,
-            postcode: zonecode,
-            address: jibunAddress,
-            siCode: sigunguCode.substring(0, 2),
-            sigunguCode: sigunguCode,
-            emdCode: bcode,
-          }));
-        }
-      });
-      setIsPostcodeOpen(false);
-    };
-
     new window.daum.Postcode({
       oncomplete: (data) => {
-        if (data.userSelectedType === "J" || data.autoJibunAddress) {
-          const finalJibunAddress = data.jibunAddress || data.autoJibunAddress;
-          processAddressData({ ...data, jibunAddress: finalJibunAddress });
-        }
+        const { zonecode, roadAddress, jibunAddress, bcode, sigunguCode } =
+          data;
+        const geocoder = new window.kakao.maps.services.Geocoder();
+        geocoder.addressSearch(roadAddress, (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            setFormData((prev) => ({
+              ...prev,
+              postcode: zonecode,
+              address: jibunAddress,
+              siCode: sigunguCode.substring(0, 2),
+              sigunguCode: sigunguCode,
+              emdCode: bcode,
+              latitude: result[0].y,
+              longitude: result[0].x,
+            }));
+          } else {
+            setFormData((prev) => ({
+              ...prev,
+              postcode: zonecode,
+              address: jibunAddress,
+              siCode: sigunguCode.substring(0, 2),
+              sigunguCode: sigunguCode,
+              emdCode: bcode,
+            }));
+          }
+        });
+        setIsPostcodeOpen(false);
       },
       width: "100%",
       height: "100%",
@@ -241,7 +237,7 @@ const RestaurantInsert = () => {
           <input
             type="text"
             name="address"
-            placeholder="지번 주소"
+            placeholder="주소"
             value={formData.address}
             readOnly
             className="w-full p-3 border border-gray-300 rounded text-base bg-gray-100 cursor-not-allowed"
@@ -267,6 +263,7 @@ const RestaurantInsert = () => {
             name="storePhone"
             value={formData.storePhone}
             onChange={handleChange}
+            required
             placeholder="예: 02-1234-5678"
             className="w-full p-3 border border-gray-300 rounded text-base"
           />
@@ -284,6 +281,7 @@ const RestaurantInsert = () => {
             name="storeDescription"
             value={formData.storeDescription}
             onChange={handleChange}
+            required
             rows="4"
             className="w-full p-3 border border-gray-300 rounded text-base resize-y"
           />
@@ -305,6 +303,7 @@ const RestaurantInsert = () => {
                   value={category}
                   checked={formData.mainCategory === category}
                   onChange={handleChange}
+                  required
                   className="mr-1.5"
                 />
                 {category}
@@ -350,11 +349,10 @@ const RestaurantInsert = () => {
           )}
         </div>
 
-        {/* 5. 로딩 상태와 연동된 버튼 */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 px-5 text-white rounded cursor-pointer text-base font-semibold transition-colors duration-200 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full py-3 px-5 text-white rounded cursor-pointer text-base font-semibold transition-colors duration-200 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
         >
           {loading ? "등록 중..." : "등록하기"}
         </button>

@@ -36,7 +36,7 @@ function App() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/test" element={<Test />}/>
+          <Route path="/test" element={<Test />} />
         </Routes>
       </AuthProvider>
       <ChattingBtn />

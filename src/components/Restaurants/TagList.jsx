@@ -257,4 +257,5 @@ export const TAG_CATEGORIES = [
   "저염식",
   "채식",
   "할랄",
+  "치킨",
 ];

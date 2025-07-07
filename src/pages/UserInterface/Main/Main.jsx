@@ -4,83 +4,34 @@ import { FiMapPin } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import Header from "../../../common/Header/Header";
 import defaultImage from "/src/assets/rog.png";
+import useApi from "../../../hooks/useApi";
 
-const CATEGORIES = ["한식", "중식", "일식", "양식", "분식", "디저트"];
+// 설정: 화면에 표시할 카테고리 목록
+const DISPLAY_CATEGORIES = ["한식", "중식", "일식", "양식"];
 
-// 더미 데이터의 키를 'restaurant_no'로 변경
-const koreanRestaurants = [
-  {
-    name: "하쿠 본점",
-    imageUrl: "/src/assets/rog1.png",
-    restaurant_no: "1", // 키 변경
-  },
-  {
-    name: "평양옥 본점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "2", // 키 변경
-  },
-  {
-    name: "진미평양냉면",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "3", // 키 변경
-  },
-  {
-    name: "광화문 본점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "4", // 키 변경
-  },
-  {
-    name: "서북면옥",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "5", // 키 변경
-  },
-  {
-    name: "하쿠쿠 본점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "6", // 키 변경
-  },
-];
+// 설정: 상단에 표시할 전체 카테고리 버튼 목록
+const ALL_CATEGORIES = ["한식", "중식", "일식", "양식", "분식", "디저트"];
 
-const chineseRestaurants = [
-  {
-    name: "중화반점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "7", // 키 변경
-  },
-  {
-    name: "북경반점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "8", // 키 변경
-  },
-  {
-    name: "상해반점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "9", // 키 변경
-  },
-  {
-    name: "광동반점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "10", // 키 변경
-  },
-  {
-    name: "광동반점",
-    imageUrl: "/src/assets/rog.png",
-    restaurant_no: "11", // 키 변경
-  },
-];
-
-const handleImageError = (e) => {
-  e.target.src = defaultImage;
-};
-
-const CategorySection = ({ title, restaurants }) => {
-  // useNavigate 훅을 초기화합니다.
+/**
+ * [UI 담당] 카테고리별 맛집 리스트 섹션을 화면에 그리는 컴포넌트
+ */
+const CategorySection = ({ title, restaurants, loading, error }) => {
   const navigate = useNavigate();
-
-  // 클릭 시 해당 음식점 상세 페이지로 이동하는 함수
-  const goToRestaurantDetail = (restaurantNo) => {
+  const goToRestaurantDetail = (restaurantNo) =>
     navigate(`/restaurant/${restaurantNo}`);
-  };
+
+  if (loading)
+    return (
+      <div className="p-4">
+        <strong>{title}</strong> 맛집 목록을 불러오는 중...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="p-4 text-red-500">
+        <strong>{title}</strong> 목록 로딩 실패: {error}
+      </div>
+    );
 
   return (
     <section className="mb-12">
@@ -94,19 +45,16 @@ const CategorySection = ({ title, restaurants }) => {
         <div className="text-sm text-[#fc742f] text-[25px]">추천맛집</div>
       </h2>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-        {/* map에서 restaurant_no도 함께 구조 분해 할당으로 가져옵니다. */}
-        {restaurants.slice(0, 5).map(({ name, imageUrl, restaurant_no }) => (
+        {restaurants?.map(({ name, imageUrl, restaurant_no }) => (
           <article
-            // key는 고유한 값인 restaurant_no로 변경하는 것이 좋습니다.
             key={restaurant_no}
-            className="border border-gray-200 rounded-lg overflow-hidden text-center bg-white transition-shadow duration-200 ease-in-out hover:shadow-lg cursor-pointer"
-            // article 태그에 onClick 이벤트를 추가합니다.
             onClick={() => goToRestaurantDetail(restaurant_no)}
+            className="border border-gray-200 rounded-lg overflow-hidden text-center bg-white transition-shadow duration-200 ease-in-out hover:shadow-lg cursor-pointer"
           >
             <img
               src={imageUrl || defaultImage}
               alt={name}
-              onError={handleImageError}
+              onError={(e) => (e.target.src = defaultImage)}
               className="w-full aspect-[4/3] object-cover"
             />
             <p className="py-3 px-2 font-medium">{name}</p>
@@ -117,9 +65,38 @@ const CategorySection = ({ title, restaurants }) => {
   );
 };
 
+/**
+ * [데이터 호출 담당] 특정 카테고리의 데이터를 useApi로 호출하고, CategorySection을 렌더링하는 컴포넌트
+ */
+const CategoryRestaurants = ({ categoryName }) => {
+  // 2. useApi 훅을 사용하여 API 호출 및 상태 관리
+  const { body, loading, error } = useApi(
+    `/api/restaurants/category/${categoryName}`
+  );
+  React.useEffect(() => {
+    // body가 null이 아닐 때만 (즉, 응답이 왔을 때만) 로그를 찍습니다.
+    if (body) {
+      console.log(`[${categoryName}] 카테고리 API 실제 응답 데이터:`, body);
+    }
+  }, [body, categoryName]);
+  // 3. 백엔드 데이터 키(restaurantNo)를 프론트엔드 키(restaurant_no)로 변경
+
+  // 4. 상태와 데이터를 UI 담당 컴포넌트로 전달
+  return (
+    <CategorySection
+      title={categoryName}
+      restaurants={body} // mappedRestaurants 대신 body를 직접 전달
+      loading={loading}
+      error={error}
+    />
+  );
+};
+
+/**
+ * 메인 페이지 전체를 구성하는 최상위 컴포넌트
+ */
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("검색어:", keyword);
@@ -130,11 +107,11 @@ const Main = () => {
     <>
       <Header />
       <div className="max-w-[960px] mx-auto py-8 px-4 bg-[#fde4d7]">
+        {/* 상단 검색 및 카테고리 버튼 영역 (생략) */}
         <section className="bg-gradient-to-br from-[#ffa868] to-[#ffaa6b] text-white text-center py-10 px-5 rounded-xl">
           <h1 className="mb-6 text-[1.6rem] font-bold leading-tight">
             한눈에 펼쳐보는 서울 맛집 추천
           </h1>
-
           <form
             onSubmit={handleSubmit}
             className="flex w-full max-w-sm mx-auto mb-6 bg-white rounded-full overflow-hidden"
@@ -155,9 +132,8 @@ const Main = () => {
               검색
             </button>
           </form>
-
           <div className="flex flex-wrap gap-2 justify-center">
-            {CATEGORIES.map((cat) => (
+            {ALL_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 className="border-none bg-white text-gray-700 py-1.5 px-3.5 rounded-full text-sm cursor-pointer transition-colors duration-150 hover:bg-[#ffe2d1]"
@@ -169,8 +145,11 @@ const Main = () => {
         </section>
 
         <br />
-        <CategorySection title="한식" restaurants={koreanRestaurants} />
-        <CategorySection title="중식" restaurants={chineseRestaurants} />
+
+        {/* 5. 카테고리 목록을 순회하며 데이터 호출 담당 컴포넌트를 렌더링 */}
+        {DISPLAY_CATEGORIES.map((category) => (
+          <CategoryRestaurants key={category} categoryName={category} />
+        ))}
       </div>
     </>
   );
