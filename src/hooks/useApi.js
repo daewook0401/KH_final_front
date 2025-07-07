@@ -23,7 +23,6 @@ const useApi = (url, options = {}, immediate = true) => {
       ...options,
       ...overrideOptions,
     };
-    console.log(config);
     const promise = axios(config)
       .then( res => {
           const { header: hd, body: bd } = res.data;

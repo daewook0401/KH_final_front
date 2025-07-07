@@ -50,8 +50,7 @@ export const AuthProvider = ({ children }) => {
     [auth]
   );
   useEffect(() => {
-    console.log(auth.socialLoginState);
-    if (auth.socialLoginState && auth.loginInfo?.isModify === "N") {
+    if (sessionStorage.getItem("socialLoginState") ==="true" && auth.loginInfo?.isModify === "N") {
       navigate("/social-info", { replace: true });
     }
   }, [auth, ready, navigate]);
@@ -62,7 +61,6 @@ export const AuthProvider = ({ children }) => {
     socialLogin = false,
     longTimeAuth = false
   ) => {
-    console.log("login");
     setAuth({
       loginInfo: loginInfo,
       tokens: tokens,
