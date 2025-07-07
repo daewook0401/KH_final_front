@@ -22,18 +22,21 @@ function ReviewPage({ restaurantNo }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // 새로 추가: 수정할 리뷰 상태
+  const [editReview, setEditReview] = useState(null);
+
   useEffect(() => {
     setLoading(true);
     setError(null);
 
     axios
-      .get(`/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
+      .get(`/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
       .then((res) => {
-        console.log("리뷰 받아옴:", res.data);
-        setReviews(Array.isArray(res.data) ? res.data : []);
+        const reviewData = res.data?.body?.items?.reviews;
+        setReviews(Array.isArray(reviewData) ? reviewData : []);
       })
       .catch((err) => {
-        console.error("리뷰 요청 실패:", err);
+        console.error("❌ 리뷰 요청 실패:", err);
         setError(err);
       })
       .finally(() => {
@@ -65,21 +68,28 @@ function ReviewPage({ restaurantNo }) {
     return sortedReviews.slice(start, start + itemsPerPage);
   }, [sortedReviews, currentPage]);
 
-  const totalItems = otherReviews.length;
-
+  const totalItems = safeReviews.length;
   const pageInfo = {
     boardNoPerPage: itemsPerPage,
     totalBoardNo: totalItems,
     pageSize: 5,
   };
 
+  // 수정 버튼 클릭 시 이동 대신 상태로 관리
   const handleEditReview = (review) => {
     if (!auth.isAuthenticated) {
       alert("로그인 후 수정이 가능합니다.");
       navigate("/login");
-    } else {
-      navigate(`/reviews/reviewId=${review.reviewNo}`);
+      return;
     }
+    setEditReview(review);
+    // 스크롤 위치 조정(선택사항)
+    const el = document.getElementById("insert-review");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const cancelEdit = () => {
+    setEditReview(null);
   };
 
   const handleDeleteReview = (reviewNo) => {
@@ -93,7 +103,7 @@ function ReviewPage({ restaurantNo }) {
     if (!confirmDelete) return;
 
     axios
-      .delete(`/restaurants/${restaurantNo}/reviews/${reviewNo}`, {
+      .delete(`/api/restaurants/${restaurantNo}/reviews/${reviewNo}`, {
         headers: {
           Authorization: `Bearer ${auth.tokens.accessToken}`,
         },
@@ -101,15 +111,16 @@ function ReviewPage({ restaurantNo }) {
       .then(() => {
         alert("리뷰가 삭제되었습니다.");
         return axios.get(
-          `/restaurants/${restaurantNo}/reviews?page=${currentPage}`
+          `/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`
         );
       })
       .then((res) => {
-        setReviews(Array.isArray(res.data) ? res.data : []);
+        const reviewData = res.data?.body?.items?.reviews;
+        setReviews(Array.isArray(reviewData) ? reviewData : []);
       })
       .catch((error) => {
-        alert("리뷰 삭제 실패");
         console.error("리뷰 삭제 오류:", error);
+        alert("리뷰 삭제 실패");
       });
   };
 
@@ -120,8 +131,11 @@ function ReviewPage({ restaurantNo }) {
       return;
     }
 
-    const el = document.getElementById("review-page-top");
+    const el = document.getElementById("insert-review");
     if (el) el.scrollIntoView({ behavior: "smooth" });
+
+    // 작성 모드로 전환하려면 editReview 초기화
+    setEditReview(null);
   };
 
   return (
@@ -139,11 +153,15 @@ function ReviewPage({ restaurantNo }) {
       <InsertReviewPage
         id="insert-review"
         restaurantNo={restaurantNo}
+        editReview={editReview} // 수정할 리뷰 전달
+        cancelEdit={cancelEdit} // 수정 취소 함수 전달
         onSubmitSuccess={() => {
+          setEditReview(null); // 제출 성공 시 수정 모드 해제
           axios
-            .get(`/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
+            .get(`/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
             .then((res) => {
-              setReviews(Array.isArray(res.data) ? res.data : []);
+              const reviewData = res.data?.body?.items?.reviews;
+              setReviews(Array.isArray(reviewData) ? reviewData : []);
               setCurrentPage(1);
             })
             .catch((err) => {

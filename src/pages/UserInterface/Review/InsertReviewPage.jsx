@@ -52,6 +52,12 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
       } else {
         setBillImage(null);
       }
+    } else {
+      // 수정모드가 아닐 땐 상태 초기화
+      setScore(0);
+      setContent("");
+      setImages([]);
+      setBillImage(null);
     }
   }, [editReview]);
 
@@ -85,7 +91,8 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
       return;
     }
 
-    if (!billImage) {
+    // 수정 모드가 아닐 때만 영수증 인증 체크
+    if (!editReview && !billImage) {
       alert("영수증 인증이 필요합니다.");
       return;
     }
@@ -95,7 +102,6 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
     const formData = new FormData();
 
-    // review 객체를 JSON으로 변환 후 Blob으로 감싸서 review라는 이름으로 넣기
     const reviewDTO = {
       reviewScore: score,
       reviewContent: content,
@@ -106,35 +112,20 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
       new Blob([JSON.stringify(reviewDTO)], { type: "application/json" })
     );
 
-    // 새로 추가된 사진만 photos로 append
     images.forEach((image) => {
       if (image.type === "new") {
         formData.append("photos", image.file);
       }
     });
 
-    // billPhoto는 파일일 때만 append (문자열 URL일 경우 제외)
     if (billImage && typeof billImage !== "string") {
       formData.append("billPhoto", billImage);
     }
 
-    // formData 내용 콘솔 출력
-    for (let pair of formData.entries()) {
-      if (pair[1] instanceof File || pair[1] instanceof Blob) {
-        console.log(pair[0], "파일/Blob:", pair[1]);
-      } else {
-        console.log(pair[0], pair[1]);
-      }
-    }
-
-    // restaurantNo는 쿼리 파라미터로 추가
-    const queryParams = new URLSearchParams({
-      restaurantNo: String(restaurantNo),
-    }).toString();
-
+    const baseUrl = `/api/restaurants/${restaurantNo}/reviews`;
     const reviewUrl = editReview
-      ? `/reviews/${editReview.reviewNo}?${queryParams}`
-      : `/reviews?${queryParams}`;
+      ? `${baseUrl}/${editReview.reviewNo}`
+      : baseUrl;
 
     axios({
       method: editReview ? "put" : "post",
@@ -167,12 +158,20 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
   const handleSubmit = (e) => {
     e.preventDefault();
     requireLogin(() => {
-      if (!billImage) {
+      if (!editReview && !billImage) {
         alert("영수증 인증이 필요합니다.");
       } else {
         handleFinalSubmit();
       }
     });
+  };
+
+  const handleCancelEdit = () => {
+    setScore(0);
+    setContent("");
+    setImages([]);
+    setBillImage(null);
+    cancelEdit && cancelEdit();
   };
 
   return (
@@ -197,7 +196,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
           />
 
           <div className="flex justify-end items-center space-x-3 mt-4">
-            {billImage && (
+            {billImage && !editReview && (
               <span
                 className="text-green-600 text-2xl font-bold select-none"
                 title="영수증 인증 완료"
@@ -206,15 +205,25 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
               </span>
             )}
 
-            <button
-              type="button"
-              className="bg-blue-500 text-white py-2 px-4 rounded-2xl hover:bg-blue-600"
-              onClick={() => {
-                requireLogin(() => setShowBillModal(true));
-              }}
-            >
-              영수증 인증
-            </button>
+            {!editReview ? (
+              <button
+                type="button"
+                className="bg-blue-500 text-white py-2 px-4 rounded-2xl hover:bg-blue-600"
+                onClick={() => {
+                  requireLogin(() => setShowBillModal(true));
+                }}
+              >
+                영수증 인증
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="w-32 text-gray-700 bg-white border border-gray-300 py-2 rounded-2xl hover:bg-gray-100"
+                onClick={handleCancelEdit}
+              >
+                취소
+              </button>
+            )}
 
             <button
               type="submit"
@@ -224,18 +233,6 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
               {loading ? "처리 중..." : editReview ? "수정 완료" : "리뷰 등록"}
             </button>
           </div>
-
-          {editReview && (
-            <div className="flex justify-start">
-              <button
-                type="button"
-                className="w-32 text-gray-700 bg-white border border-gray-300 py-2 rounded-2xl hover:bg-gray-100"
-                onClick={cancelEdit}
-              >
-                취소
-              </button>
-            </div>
-          )}
 
           {error && <p className="text-red-500">{error}</p>}
         </form>

@@ -21,7 +21,7 @@ function ReviewItem({ review, onEdit, onDelete }) {
 
       <RatingStars value={review.reviewScore} />
 
-      <ImageGallery images={review.reviewPhotos} />
+      <ImageGallery images={review.photos} />
 
       <p className="text-gray-700">{review.reviewContent}</p>
 
