@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import defaultImage from "../../../assets/rog.png";
 import KakaoMap from "./KakaoMap";
 import RatingStars from "../../../components/RatingStars";
 import ReviewPage from "../Review/ReviewPage";
@@ -10,41 +11,114 @@ import useApi from "../../../hooks/useApi";
 import { useContext } from "react";
 import AuthContext from "../../../provider/AuthContext";
 import axios from "axios";
-const StarRating = ({ averageRating, reviewCount }) => {
-  const stars = [];
-  const ratingValue = Number(averageRating) || 0;
 
+const StarRating = ({ averageRating, reviewCount }) => {
+  const ratingValue = Number(averageRating) || 0;
   return (
     <div className="flex items-center mb-4">
       <RatingStars value={ratingValue} />
       <span className="ml-2.5 font-bold text-gray-600">
-        {ratingValue.toFixed(1)}점 ({reviewCount}명의 평가)
+        {ratingValue.toFixed(1)}점 ({reviewCount || 0}명의 평가)
       </span>
     </div>
   );
 };
 
+/**
+ * 식당 상세 페이지 전체를 구성하는 메인 컴포넌트
+ */
 const Restaurant = () => {
-  const { restaurantId } = useParams();
+  // URL 파라미터에서 식당 ID를 가져옵니다.
+  const { restaurant_no: restaurantId } = useParams();
   const [buttonType, setButtonType] = useState(3);
   const [restaurantData, setRestaurantData] = useState({
     details: null,
     ratingInfo: null,
     menuItems: [],
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  //const [loading, setLoading] = useState(true);
+  //const [error, setError] = useState(null);
   const [openOperatingTime, setOpenOperatingTime] = useState(false);
   const [openReservationSetting, setOpenReservationSetting] = useState(false);
   const [openReservation, setOpenReservation] = useState(false);
   const { auth } = useContext(AuthContext);
   const [isStoreOwner, setIsStoreOwner] = useState(false);
+  const [map, setMap] = useState(true);
+
+  // useApi 훅을 사용하여 식당 상세 정보와 별점 정보를 각각 API로 호출합니다.
+  const {
+    body: details,
+    loading: detailsLoading,
+    error: detailsError,
+  } = useApi(`/api/restaurants/${restaurantId}`);
+
+  const {
+    body: ratingInfo,
+    loading: ratingLoading,
+    error: ratingError,
+  } = useApi(`/api/restaurants/${restaurantId}/rating`);
+
+  // 카카오맵 좌표를 저장할 state
+  const [mapCoords, setMapCoords] = useState(null);
+
+  // 메뉴 정보는 요청대로 더미 데이터로 유지합니다.
+  const mockMenuItems = [
+    {
+      menuId: 1,
+      menuName: "감성 그릴드 파히타",
+      menuPrice: 38000,
+      menuImageUrl:
+        "https://via.placeholder.com/150/cccccc/808080?text=메뉴+사진1",
+    },
+    {
+      menuId: 2,
+      menuName: "까르니따스 치즈 타코",
+      menuPrice: 12000,
+      menuImageUrl: null,
+    },
+    {
+      menuId: 3,
+      menuName: "과카몰리 나초",
+      menuPrice: 9000,
+      menuImageUrl:
+        "https://via.placeholder.com/150/cccccc/808080?text=메뉴+사진2",
+    },
+  ];
+
+  // 주소를 좌표로 변환하기 위한 useEffect 훅
+  useEffect(() => {
+    if (details && details.restaurantAddress) {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+        if (map === true) {
+          const geocoder = new window.kakao.maps.services.Geocoder();
+          geocoder.addressSearch(
+            details.restaurantAddress,
+            (result, status) => {
+              if (status === window.kakao.maps.services.Status.OK) {
+                const coords = { lat: result[0].y, lng: result[0].x };
+                setMapCoords(coords);
+                setMap(false);
+              } else {
+                console.error(
+                  "주소로 좌표를 찾지 못했습니다:",
+                  details.restaurantAddress
+                );
+                setMapCoords(null);
+                setMap(false);
+              }
+            }
+          );
+        }
+      }
+    }
+  });
 
   useEffect(() => {
     if (auth?.loginInfo?.isStoreOwner === "Y") {
       setIsStoreOwner(true);
     }
   });
+
   const {
     header: operatingInfoHd,
     body: operatingInfoBd,
@@ -143,134 +217,38 @@ const Restaurant = () => {
   };
 
   console.log(reservationSettingHd, reservationSettingBd);
-  console.log(reservationSettingBd.items.reservation);
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const fetchDetails = async () => {
-          const mockDetailsResponse = {
-            header: { code: "S101", message: "식당 상세 조회 성공" },
-            body: {
-              items: [
-                {
-                  restaurantName: "감성 타코",
-                  restaurantAddress: "서울시 강남구 테헤란로 427",
-                  restaurantDescription:
-                    "신선한 재료로 만드는 정통 멕시칸 요리를 즐길 수 있는 곳입니다. 다양한 타코와 파히타가 준비되어 있습니다.",
-                  restaurantMainPhoto:
-                    "https://via.placeholder.com/600x400/cccccc/808080?text=대표+사진",
-                  restaurantCuisineType: ["멕시칸", "타코", "퓨전"],
-                  restaurantMapX: "37.504547",
-                  restaurantMapZ: "127.048963",
-                },
-              ],
-            },
-          };
-          if (mockDetailsResponse.header.code !== "S101") {
-            throw new Error(mockDetailsResponse.header.message);
-          }
-          return mockDetailsResponse.body.items[0];
-        };
 
-        const fetchRating = async () => {
-          const mockRatingResponse = {
-            header: { code: "S102", message: "별점 정보 조회 성공" },
-            body: {
-              averageRating: 4.5,
-              reviewCount: 125,
-            },
-          };
-          if (mockRatingResponse.header.code !== "S102") {
-            throw new Error(mockRatingResponse.header.message);
-          }
-          return mockRatingResponse.body;
-        };
-
-        const fetchMenu = async () => {
-          const mockMenuResponse = {
-            header: { code: "S103", message: "메뉴 정보 조회 성공" },
-            body: {
-              items: [
-                {
-                  menuId: 1,
-                  menuName: "감성 그릴드 파히타",
-                  menuPrice: 38000,
-                  menuImageUrl:
-                    "https://via.placeholder.com/150/cccccc/808080?text=음식+사진",
-                },
-                {
-                  menuId: 2,
-                  menuName: "까르니따스 치즈 타코",
-                  menuPrice: 12000,
-                  menuImageUrl: null,
-                },
-                {
-                  menuId: 3,
-                  menuName: "과카몰리 나초",
-                  menuPrice: 9000,
-                  menuImageUrl:
-                    "https://via.placeholder.com/150/cccccc/808080?text=음식+사진",
-                },
-                {
-                  menuId: 4,
-                  menuName: "애플망고 에이드",
-                  menuPrice: 6500,
-                  menuImageUrl:
-                    "https://via.placeholder.com/150/cccccc/808080?text=음식+사진",
-                },
-              ],
-            },
-          };
-          if (mockMenuResponse.header.code !== "S103") {
-            throw new Error(mockMenuResponse.header.message);
-          }
-          return mockMenuResponse.body.items;
-        };
-
-        const [details, ratingInfo, menuItems] = await Promise.all([
-          fetchDetails(),
-          fetchRating(),
-          fetchMenu(),
-        ]);
-
-        setRestaurantData({ details, ratingInfo, menuItems });
-      } catch (err) {
-        setError(err.message || "데이터를 불러오는 중 오류가 발생했습니다.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllData();
-  }, [restaurantId]);
-
+  // 주소 복사 핸들러
   const handleCopyAddress = () => {
-    if (restaurantData.details?.restaurantAddress) {
+    if (details?.restaurantAddress) {
       navigator.clipboard
-        .writeText(restaurantData.details.restaurantAddress)
+        .writeText(details.restaurantAddress)
         .then(() => alert("주소가 복사되었습니다!"));
     }
   };
 
+
+  // 로딩 및 에러 상태를 종합적으로 관리
+  const loading = detailsLoading || ratingLoading;
+  const error = detailsError || ratingError;
+
   if (loading) {
-    return <div className="text-center p-12 text-lg">로딩 중...</div>;
+    return (
+      <div className="text-center p-12 text-lg">가게 정보를 불러오는 중...</div>
+    );
   }
   if (error) {
     return (
       <div className="text-center p-12 text-lg text-red-600">오류: {error}</div>
     );
   }
-  if (!restaurantData.details || !restaurantData.ratingInfo) {
+  if (!details || !ratingInfo) {
     return (
       <div className="text-center p-12">가게 정보를 표시할 수 없습니다.</div>
     );
   }
 
-  const { details, ratingInfo, menuItems } = restaurantData;
   const cardStyles = "bg-white p-6 border border-gray-200 rounded-lg shadow-sm";
 
   return (
@@ -289,15 +267,16 @@ const Restaurant = () => {
       )}
       <div className="flex max-w-[1200px] my-5 mx-auto p-5 gap-5 font-sans bg-gray-50">
         <main className="flex-[3] flex flex-col gap-8">
+          {/* -- 식당 기본 정보 -- */}
           <section className={cardStyles}>
             <img
-              src={details.restaurantMainPhoto}
+              src={details.restaurantMainPhoto || defaultImage}
               alt={`${details.restaurantName} 대표 사진`}
               className="w-full h-[300px] object-cover rounded-lg bg-gray-200 mb-5"
             />
             <div>
               <p className="text-gray-500 text-sm m-0">
-                {details.restaurantCuisineType?.join(", ")}
+                {details.restaurantCuisineType?.split(",").join(", ")}
               </p>
               <div className="flex items-center justify-between mb-2">
                 <h1 className="mt-1 text-3xl font-bold text-gray-800">
@@ -419,6 +398,7 @@ const Restaurant = () => {
             </div>
           </section>
 
+          {/* -- 가게 설명 -- */}
           <section className={cardStyles}>
             <h3 className="mt-0 mb-4 text-[#ff7750] text-xl font-bold">
               가게 설명
@@ -428,6 +408,7 @@ const Restaurant = () => {
             </p>
           </section>
 
+          {/* -- 메뉴 정보 (더미 데이터) -- */}
           <section className={cardStyles}>
             <h2 className="mt-0 mb-4 text-[#ff7750] text-xl font-bold">
               메뉴 정보
@@ -438,7 +419,7 @@ const Restaurant = () => {
                 <div className="text-right pr-5">가격</div>
                 <div className="text-center">사진</div>
               </div>
-              {menuItems.map((item) => (
+              {mockMenuItems.map((item) => (
                 <div
                   key={item.menuId}
                   className="grid grid-cols-[2fr_1fr_1fr] items-center py-4 px-2.5 border-b border-gray-100"
@@ -464,19 +445,22 @@ const Restaurant = () => {
               ))}
             </div>
           </section>
-          <ReviewPage restaurantNo={restaurantId} />
+
+          {/* -- 리뷰 영역 (수정 안 함) -- */}
+          {/*<ReviewPage restaurantNo={restaurantId} />*/}
         </main>
 
         <aside className="flex-1">
-          {details?.restaurantMapX && details?.restaurantMapZ ? (
+          {/* 카카오맵: 변환된 좌표(mapCoords)가 있을 때만 렌더링 */}
+          {mapCoords ? (
             <KakaoMap
-              lat={details.restaurantMapX}
-              lng={details.restaurantMapZ}
+              lat={mapCoords.lat}
+              lng={mapCoords.lng}
               name={details.restaurantName}
             />
           ) : (
             <div className="w-full h-[300px] bg-gray-200 flex justify-center items-center text-gray-500 rounded-lg text-lg">
-              위치 정보가 없어 지도를 표시할 수 없습니다.
+              지도 정보를 불러오는 중...
             </div>
           )}
           <div className="text-sm text-gray-600 mt-2">

@@ -59,7 +59,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/social-info" element={<SocialInfo />} />
-            <Route path="/test" element={<Test />}/>
+            <Route path="/test" element={<Test />} />
             <Route path="/mypage" element={<MyPageLayout />}>
               <Route path="profile" element={<ProfileCard />} />
               <Route path="reservations" element={<ReservationList />} />
@@ -67,7 +67,7 @@ function App() {
               <Route path="favorites" element={<FavoriteList />} />
               {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
             </Route>
-            <Route path="password-confirm" element={<PasswordConfirmModal/>} />
+            <Route path="password-confirm" element={<PasswordConfirmModal />} />
           </Route>
 
           <Route path="/admin" element={<AdminRoute />}>
@@ -77,10 +77,7 @@ function App() {
             </Route>
           </Route>
 
-
-          
           <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
-
         </Routes>
       </AuthProvider>
     </>

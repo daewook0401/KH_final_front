@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
-
-const MAIN_CATEGORIES = ["한식", "중식", "일식"];
-const TAG_CATEGORIES = [
-  "양식",
-  "피자",
-  "바베큐",
-  "카페",
-  "분위기 좋은",
-  "가성비",
-];
+import { useNavigate } from "react-router-dom";
+import TagSelector from "../../../components/Restaurants/TagSelector";
+import {
+  MAIN_CATEGORIES,
+  TAG_CATEGORIES,
+} from "../../../components/Restaurants/TagList";
+import useApi from "../../../hooks/useApi";
 
 const RestaurantInsert = () => {
   const [formData, setFormData] = useState({
@@ -29,19 +26,51 @@ const RestaurantInsert = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isPostcodeOpen, setIsPostcodeOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // useApi 훅 설정 (POST 방식, 버튼 클릭 시 요청)
+  const { loading, refetch } = useApi(
+    "/api/stores/register",
+    { method: "post" },
+    false
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "storePhone") {
+      const cleaned = value.replace(/[^0-9]/g, "");
+      let formatted = "";
+      if (cleaned.startsWith("02")) {
+        if (cleaned.length <= 2) {
+          formatted = cleaned;
+        } else if (cleaned.length <= 6) {
+          formatted = `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
+        } else {
+          formatted = `${cleaned.slice(0, 2)}-${cleaned.slice(
+            2,
+            6
+          )}-${cleaned.slice(6, 10)}`;
+        }
+      } else {
+        if (cleaned.length <= 3) {
+          formatted = cleaned;
+        } else if (cleaned.length <= 7) {
+          formatted = `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+        } else {
+          formatted = `${cleaned.slice(0, 3)}-${cleaned.slice(
+            3,
+            7
+          )}-${cleaned.slice(7, 11)}`;
+        }
+      }
+      setFormData((prev) => ({ ...prev, [name]: formatted }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleTagChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setSelectedTags((prev) => [...prev, value]);
-    } else {
-      setSelectedTags((prev) => prev.filter((tag) => tag !== value));
-    }
+  const handleTagSelectionChange = (newTags) => {
+    setSelectedTags(newTags);
   };
 
   const handleImageChange = (e) => {
@@ -53,19 +82,37 @@ const RestaurantInsert = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.mainCategory) {
-      alert("대분류를 선택해주세요.");
-      return;
+    // 유효성 검사
+    switch (true) {
+      case !formData.storeName:
+        alert("가게 이름을 입력해주세요.");
+        return;
+      case !formData.address:
+        alert("주소를 입력해주세요.");
+        return;
+      case !formData.storePhone:
+        alert("전화번호를 입력해주세요.");
+        return;
+      case !formData.storeDescription:
+        alert("가게 설명을 입력해주세요.");
+        return;
+      case !formData.mainCategory:
+        alert("대분류를 선택해주세요.");
+        return;
+      case selectedTags.length === 0:
+        alert("태그를 1개 이상 선택해주세요.");
+        return;
+      case !imageFile:
+        alert("가게 대표사진을 등록해주세요.");
+        return;
+      default:
+        break;
     }
 
-    if (selectedTags.length === 0) {
-      alert("태그를 1개 이상 선택해주세요.");
-      return;
-    }
-
+    // 서버로 보낼 FormData 준비
     const submissionData = new FormData();
     const cuisineTypes = [formData.mainCategory, ...selectedTags].filter(
       Boolean
@@ -79,39 +126,33 @@ const RestaurantInsert = () => {
     submissionData.append("restaurantPostalCode", formData.postcode);
     submissionData.append("restaurantPhoneNumber", formData.storePhone);
     submissionData.append("restaurantDescription", formData.storeDescription);
-    submissionData.append("restaurantMapX", formData.longitude);
-    submissionData.append("restaurantMapZ", formData.latitude);
-
     cuisineTypes.forEach((type) => {
       submissionData.append("restaurantCuisineType", type);
     });
+    submissionData.append("restaurantMainPhoto", imageFile);
 
-    if (imageFile) {
-      submissionData.append("restaurantMainPhoto", imageFile);
-    }
-
-    console.log(" 서버로 전송될 최종 데이터 (FormData):");
-    for (let [key, value] of submissionData.entries()) {
-      console.log(`  ${key}:`, value);
-    }
-
-    try {
-      const response = await fetch("/api/stores/register", {
-        method: "POST",
-        body: submissionData,
+    // refetch 함수를 호출하여 POST 요청 실행
+    refetch({
+      data: submissionData,
+    })
+      .then((response) => {
+        if (
+          response &&
+          response.header &&
+          response.header.code.startsWith("S100")
+        ) {
+          alert("맛집이 성공적으로 등록되었습니다!");
+          navigate("/"); // 성공 시 홈으로 이동
+        } else {
+          const errorMessage =
+            response?.header?.message || "등록에 실패했습니다.";
+          alert(`맛집 등록 실패: ${errorMessage}`);
+        }
+      })
+      .catch((error) => {
+        console.error("등록 에러:", error);
+        alert(error.message || "알 수 없는 오류가 발생했습니다.");
       });
-      if (response.ok) {
-        const result = await response.json();
-        alert("맛집이 성공적으로 등록되었습니다!");
-        console.log("✅ 등록 완료:", result);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "등록에 실패했습니다.");
-      }
-    } catch (error) {
-      console.error(" 등록 에러:", error);
-      alert(error.message);
-    }
   };
 
   useEffect(() => {
@@ -151,18 +192,6 @@ const RestaurantInsert = () => {
       height: "100%",
     }).embed(elementWrap);
   }, [isPostcodeOpen]);
-
-  useEffect(() => {
-    console.log(" formData가 변경되었습니다:", formData);
-  }, [formData]);
-  useEffect(() => {
-    console.log(" 선택된 태그:", selectedTags);
-  }, [selectedTags]);
-  useEffect(() => {
-    if (imageFile) {
-      console.log(" 선택된 이미지 파일:", imageFile);
-    }
-  }, [imageFile]);
 
   return (
     <div className="max-w-[600px] my-5 mx-auto p-8 border border-gray-200 rounded-lg font-sans">
@@ -208,7 +237,7 @@ const RestaurantInsert = () => {
           <input
             type="text"
             name="address"
-            placeholder="지번 주소"
+            placeholder="주소"
             value={formData.address}
             readOnly
             className="w-full p-3 border border-gray-300 rounded text-base bg-gray-100 cursor-not-allowed"
@@ -234,6 +263,7 @@ const RestaurantInsert = () => {
             name="storePhone"
             value={formData.storePhone}
             onChange={handleChange}
+            required
             placeholder="예: 02-1234-5678"
             className="w-full p-3 border border-gray-300 rounded text-base"
           />
@@ -251,6 +281,7 @@ const RestaurantInsert = () => {
             name="storeDescription"
             value={formData.storeDescription}
             onChange={handleChange}
+            required
             rows="4"
             className="w-full p-3 border border-gray-300 rounded text-base resize-y"
           />
@@ -272,6 +303,7 @@ const RestaurantInsert = () => {
                   value={category}
                   checked={formData.mainCategory === category}
                   onChange={handleChange}
+                  required
                   className="mr-1.5"
                 />
                 {category}
@@ -282,24 +314,14 @@ const RestaurantInsert = () => {
 
         <div className="mb-5">
           <label className="block mb-2 font-semibold text-sm">
-            태그 (중복 선택 가능)
+            태그 (검색하여 최대 5개 선택)
           </label>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {TAG_CATEGORIES.map((tag) => (
-              <label
-                key={tag}
-                className="flex items-center font-normal cursor-pointer text-base"
-              >
-                <input
-                  type="checkbox"
-                  value={tag}
-                  onChange={handleTagChange}
-                  className="mr-1.5"
-                />
-                {tag}
-              </label>
-            ))}
-          </div>
+          <TagSelector
+            allTags={TAG_CATEGORIES}
+            selectedTags={selectedTags}
+            onSelectionChange={handleTagSelectionChange}
+            maxSelection={5}
+          />
         </div>
 
         <div className="mb-5">
@@ -329,9 +351,10 @@ const RestaurantInsert = () => {
 
         <button
           type="submit"
-          className="w-full py-3 px-5 text-white rounded cursor-pointer text-base font-semibold transition-colors duration-200 bg-blue-600 hover:bg-blue-700"
+          disabled={loading}
+          className="w-full py-3 px-5 text-white rounded cursor-pointer text-base font-semibold transition-colors duration-200 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
         >
-          등록하기
+          {loading ? "등록 중..." : "등록하기"}
         </button>
       </form>
     </div>
