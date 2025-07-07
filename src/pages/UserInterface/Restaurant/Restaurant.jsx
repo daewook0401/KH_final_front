@@ -287,7 +287,6 @@ const Restaurant = () => {
       {openReservationSetting && (
         <Settings setOpenReservationSetting={setOpenReservationSetting} />
       )}
-
       <div className="flex max-w-[1200px] my-5 mx-auto p-5 gap-5 font-sans bg-gray-50">
         <main className="flex-[3] flex flex-col gap-8">
           <section className={cardStyles}>

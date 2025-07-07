@@ -7,7 +7,6 @@ import Reservation from "./pages/UserInterface/Reservation/Reservation";
 import Settings from "./pages/UserInterface/Reservation/Settings";
 import Restaurant from "./pages/UserInterface/Restaurant/Restaurant";
 import RestaurantInsert from "./pages/UserInterface/Restaurant/RestaurantInsert";
-import MyPage from "./pages/UserInterface/MyPage/MyPage";
 import Login from "./pages/UserInterface/Login/Login";
 import SignUp from "./pages/UserInterface/Login/SignUp";
 import InsertReviewPage from "./pages/UserInterface/Review/InsertReviewPage";
@@ -22,6 +21,14 @@ import AdminMain from "./pages/AdminInterface/Main/AdminMain";
 import UserLayout from "./common/Layout/UserLayout";
 import AdminLayout from "./common/Layout/AdminLayout";
 import AdminChatPage from "./pages/AdminInterface/AdminChatting/AdminChatting";
+import MyPageLayout from "./pages/UserInterface/MyPage/MyPageLayout";
+import ProfileCard from "./pages/UserInterface/MyPage/ProfileCard";
+import ReservationList from "./pages/UserInterface/MyPage/ReservationList";
+import ReviewList from "./pages/UserInterface/MyPage/ReviewList";
+import FavoriteList from "./pages/UserInterface/MyPage/FavoriteList";
+import PasswordConfirmModal from "./pages/UserInterface/MyPage/PasswordConfirmModal";
+import Header from "./common/Header/Header";
+
 
 function App() {
   const [count, setCount] = useState(0);
@@ -29,6 +36,7 @@ function App() {
   return (
     <>
       <AuthProvider>
+        <Header/>
         <Routes>
           <Route element={<UserLayout />}>
             <Route path="/" element={<Main />} />
@@ -57,6 +65,32 @@ function App() {
               <Route path="main" element={<AdminMain />} />
               <Route path="chatting" element={<AdminChatPage />} />
             </Route>
+          <Route path="/" element={<Main />} />
+          <Route path="/restaurant/:restaurant_no" element={<Restaurant />} />
+          <Route path="/restaurant-insert" element={<RestaurantInsert />} />
+          <Route
+            path="/reviews/:restaurant_no"
+            element={<InsertReviewPage />}
+          />
+          <Route path="/openinghours" element={<Openinghours />} />
+          <Route path="/reservation" element={<Reservation />} />
+          <Route path="/settings" element={<Settings />} />
+
+
+          
+
+          <Route path="/login" element={<Login />} />
+          <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/social-info" element={<SocialInfo />} />
+          <Route path="/test" element={<Test />}/>
+          <Route path="/mypage" element={<MyPageLayout />}>
+            <Route path="profile" element={<ProfileCard />} />
+            <Route path="reservations" element={<ReservationList />} />
+            <Route path="reviews" element={<ReviewList />} />
+            <Route path="favorites" element={<FavoriteList />} />
+            <Route path="password-confirm" element={<PasswordConfirmModal/>} />
+            {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
           </Route>
         </Routes>
       </AuthProvider>
