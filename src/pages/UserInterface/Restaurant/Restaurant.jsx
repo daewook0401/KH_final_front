@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import Header from "../../../common/Header/Header";
 import KakaoMap from "./KakaoMap";
 import RatingStars from "../../../components/RatingStars";
 import ReviewPage from "../Review/ReviewPage";
-
+import Reservation from "../Reservation/Reservation";
+import Operatinghours from "../Operatinghours/Operatinghours";
+import Settings from "../Reservation/Settings";
+import useApi from "../../../hooks/useApi";
+import { useContext } from "react";
+import AuthContext from "../../../provider/AuthContext";
+import axios from "axios";
 const StarRating = ({ averageRating, reviewCount }) => {
   const stars = [];
   const ratingValue = Number(averageRating) || 0;
@@ -21,6 +26,7 @@ const StarRating = ({ averageRating, reviewCount }) => {
 
 const Restaurant = () => {
   const { restaurantId } = useParams();
+  const [buttonType, setButtonType] = useState(3);
   const [restaurantData, setRestaurantData] = useState({
     details: null,
     ratingInfo: null,
@@ -28,7 +34,115 @@ const Restaurant = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [openOperatingTime, setOpenOperatingTime] = useState(false);
+  const [openReservationSetting, setOpenReservationSetting] = useState(false);
+  const [openReservation, setOpenReservation] = useState(false);
+  const { auth } = useContext(AuthContext);
+  const [isStoreOwner, setIsStoreOwner] = useState(false);
 
+  useEffect(() => {
+    if (auth?.loginInfo?.isStoreOwner === "Y") {
+      setIsStoreOwner(true);
+    }
+  });
+  const {
+    header: operatingInfoHd,
+    body: operatingInfoBd,
+    refetch: operatingInfo,
+  } = useApi("/api/operatings", {
+    method: "get",
+    params: {
+      restaurantNo: "2",
+    },
+  });
+
+  const {
+    header: myReservationHd,
+    body: myReservationBd,
+    refetch: myReservation,
+  } = useApi("/api/reservation/check", {
+    method: "get",
+    params: {
+      restaurantNo: "2",
+    },
+  });
+
+  const {
+    header: reservationSettingHd,
+    body: reservationSettingBd,
+    refetch: reservationSetting,
+  } = useApi("/api/settings", {
+    method: "get",
+    params: {
+      restaurantNo: "2",
+    },
+  });
+
+  const hasOperatingInfo = operatingInfoBd && operatingInfoBd.items.length > 0;
+  const hasReservationSetting =
+    reservationSettingBd && reservationSettingBd.items.settingInfo;
+  const handleDeleteOperatingTime = () => {
+    axios
+      .delete("/api/reservation", {
+        params: {
+          reservationNo: "2",
+        },
+        headers: {
+          Authorization: `Bearer ${auth?.tokens?.accessToken}`,
+        },
+      })
+      .then((res) => {
+        console.log(res);
+        alert("운영시간 삭제되었습니다!");
+        operatingInfo();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const handleDeleteReservationSetting = () => {
+    axios
+      .delete("/api/settings", {
+        params: {
+          reservationNo: "2",
+        },
+        headers: {
+          Authorization: `Bearer ${auth?.tokens?.accessToken}`,
+        },
+      })
+      .then((res) => {
+        console.log(res);
+        alert("예약설정 삭제되었습니다!");
+        reservationSetting();
+        operatingInfo();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const handleCancelReservation = (reservationNo) => {
+    axios
+      .delete("/api/reservation", {
+        params: {
+          reservationNo: reservationNo,
+        },
+        headers: {
+          Authorization: `Bearer ${auth?.tokens?.accessToken}`,
+        },
+      })
+      .then((res) => {
+        console.log(res);
+        alert("예약이 취소되었습니다.");
+        myReservation();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  console.log(reservationSettingHd, reservationSettingBd);
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -140,6 +254,8 @@ const Restaurant = () => {
     }
   };
 
+  useEffect(() => {});
+
   if (loading) {
     return <div className="text-center p-12 text-lg">로딩 중...</div>;
   }
@@ -159,6 +275,18 @@ const Restaurant = () => {
 
   return (
     <>
+      {openOperatingTime && (
+        <Operatinghours setOpenOperatingTime={setOpenOperatingTime} />
+      )}
+      {openReservation && (
+        <Reservation
+          setOpenReservation={setOpenReservation}
+          refetchMyReservation={myReservation}
+        />
+      )}
+      {openReservationSetting && (
+        <Settings setOpenReservationSetting={setOpenReservationSetting} />
+      )}
       <div className="flex max-w-[1200px] my-5 mx-auto p-5 gap-5 font-sans bg-gray-50">
         <main className="flex-[3] flex flex-col gap-8">
           <section className={cardStyles}>
@@ -171,9 +299,69 @@ const Restaurant = () => {
               <p className="text-gray-500 text-sm m-0">
                 {details.restaurantCuisineType?.join(", ")}
               </p>
-              <h1 className="mt-1 mb-2 text-3xl font-bold text-gray-800">
-                {details.restaurantName}
-              </h1>
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="mt-1 text-3xl font-bold text-gray-800">
+                  {details.restaurantName}
+                </h1>
+
+                <div className="flex gap-2">
+                  {isStoreOwner && (
+                    <>
+                      {/* 운영시간 버튼 */}
+                      {!hasOperatingInfo ? (
+                        <button
+                          onClick={() => setOpenOperatingTime(true)}
+                          className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold hover:bg-[#e66a45]"
+                        >
+                          운영시간 등록
+                        </button>
+                      ) : (
+                        // 운영시간 삭제 버튼: 예약설정 없을 때만 표시
+                        !hasReservationSetting && (
+                          <button
+                            onClick={handleDeleteOperatingTime}
+                            className="bg-red-500 text-white py-1.5 px-3 rounded font-bold hover:bg-red-600"
+                          >
+                            운영시간 삭제
+                          </button>
+                        )
+                      )}
+
+                      {/* 예약설정 버튼 */}
+                      {hasOperatingInfo && (
+                        <>
+                          {!hasReservationSetting ? (
+                            <button
+                              onClick={() => setOpenReservationSetting(true)}
+                              className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold hover:bg-[#e66a45]"
+                            >
+                              예약설정 등록
+                            </button>
+                          ) : (
+                            <button
+                              onClick={handleDeleteReservationSetting}
+                              className="bg-red-500 text-white py-1.5 px-3 rounded font-bold hover:bg-red-600"
+                            >
+                              예약설정 삭제
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+
+                  {!isStoreOwner &&
+                    hasOperatingInfo &&
+                    hasReservationSetting && (
+                      <button
+                        onClick={() => setOpenReservation(true)}
+                        className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold hover:bg-[#e66a45]"
+                      >
+                        예약하기
+                      </button>
+                    )}
+                </div>
+              </div>
               <StarRating
                 averageRating={ratingInfo.averageRating}
                 reviewCount={ratingInfo.reviewCount}
@@ -187,6 +375,47 @@ const Restaurant = () => {
                   주소 복사
                 </button>
               </div>
+              {operatingInfoBd && operatingInfoBd.items.length > 0 && (
+                <div className="mt-3 p-4 bg-gray-100 rounded shadow-sm">
+                  <h4 className="text-base font-semibold text-gray-700 mb-2">
+                    운영 시간
+                  </h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    {operatingInfoBd.items.map((item, idx) => {
+                      const dayMap = {
+                        Monday: "월",
+                        Tuesday: "화",
+                        Wednesday: "수",
+                        Thursday: "목",
+                        Friday: "금",
+                        Saturday: "토",
+                        Sunday: "일",
+                      };
+                      const dayKor = dayMap[item.weekDay] || item.weekDay;
+
+                      const endTimeDisplay =
+                        item.endTime >= "24:00"
+                          ? `${parseInt(item.endTime.split(":")[0], 10) - 24}:${
+                              item.endTime.split(":")[1]
+                            }`
+                          : item.endTime;
+
+                      return (
+                        <li key={idx}>
+                          <span className="font-medium">{dayKor}</span>{" "}
+                          {item.startTime} ~ {item.endTime}
+                          {item.breakStartTime && item.breakEndTime && (
+                            <span className="ml-2 text-gray-500">
+                              (브레이크 {item.breakStartTime} ~{" "}
+                              {item.breakEndTime})
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           </section>
 
@@ -253,6 +482,102 @@ const Restaurant = () => {
           <div className="text-sm text-gray-600 mt-2">
             클릭시 카카오맵에서 해당 위치를 확인할 수 있습니다.
           </div>
+          {myReservationBd?.items?.length > 0 && (
+            <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="text-lg font-bold text-gray-700 mb-3">
+                내 예약 정보
+              </h4>
+              {myReservationBd.items.map((item) => (
+                <div
+                  key={item.reservationNo}
+                  className="mb-3 border-b last:border-none pb-2"
+                >
+                  <p className="text-gray-700 font-medium">
+                    예약 날짜:{" "}
+                    <span className="font-bold">{item.reserveDay}</span>
+                  </p>
+                  <p className="text-gray-700 font-medium">
+                    예약 시간:{" "}
+                    <span className="font-bold">{item.reserveTime}</span>
+                  </p>
+                  <p className="text-gray-700 font-medium">
+                    인원:{" "}
+                    <span className="font-bold">{item.numberOfGuests}명</span>
+                  </p>
+                  <p className="text-gray-700 font-medium">
+                    예약 상태:{" "}
+                    <span className="font-bold">
+                      {item.status ? item.status : "확인 중"}
+                    </span>
+                  </p>
+
+                  <button
+                    onClick={() => handleCancelReservation(item.reservationNo)}
+                    className="mt-2 px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                  >
+                    예약 취소
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {reservationSettingBd?.items && isStoreOwner && (
+            <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="text-lg font-bold text-gray-700 mb-3">
+                예약 설정 정보
+              </h4>
+
+              {reservationSettingBd.items.settingInfo && (
+                <div className="mb-4 text-sm text-gray-700 space-y-1">
+                  <p>
+                    <strong>설명:</strong>{" "}
+                    {reservationSettingBd.items.settingInfo.description}
+                  </p>
+                  <p>
+                    <strong>예약 인원:</strong>{" "}
+                    {reservationSettingBd.items.settingInfo.minNum}명 ~{" "}
+                    {reservationSettingBd.items.settingInfo.maxNum}명
+                  </p>
+                  <p>
+                    <strong>최대 팀 수:</strong>{" "}
+                    {reservationSettingBd.items.settingInfo.maxTeamNum}팀
+                  </p>
+                  <p>
+                    <strong>예약 간격:</strong>{" "}
+                    {reservationSettingBd.items.settingInfo.interval}분
+                  </p>
+                </div>
+              )}
+
+              {reservationSettingBd.items.reservation && isStoreOwner && (
+                <div className="text-sm text-gray-700">
+                  <h5 className="font-semibold mb-1">요일별 예약 가능 시간</h5>
+                  <ul className="space-y-1">
+                    {reservationSettingBd.items.reservation.map((item, idx) => {
+                      const dayMap = {
+                        Monday: "월",
+                        Tuesday: "화",
+                        Wednesday: "수",
+                        Thursday: "목",
+                        Friday: "금",
+                        Saturday: "토",
+                        Sunday: "일",
+                      };
+                      return (
+                        <li key={idx}>
+                          <span className="font-medium">
+                            {dayMap[item.weekDay] || item.weekDay}
+                          </span>
+                          : {item.reservationStartTime} ~{" "}
+                          {item.reservationEndTime}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </aside>
       </div>
     </>

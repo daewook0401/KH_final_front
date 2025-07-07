@@ -119,7 +119,7 @@ const CategorySection = ({ title, restaurants }) => {
 
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("검색어:", keyword);

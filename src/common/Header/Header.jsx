@@ -2,20 +2,28 @@ import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import logoImage from "/src/assets/rog.png";
 import { AuthContext } from "../../provider/AuthContext";
+
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useContext(AuthContext);
+
   const handleLogoClick = () => {
     navigate("/");
   };
 
   const handleAuthClick = () => {
     if (auth.isAuthenticated) {
-      navigate("/mypage");
+      // 관리자인 경우 관리자 페이지로 이동
+      if (auth.loginInfo?.memberRole === "ROLE_ADMIN") {
+        navigate("/admin/main");
+      } else {
+        navigate("/mypage");
+      }
     } else {
       navigate("/login");
     }
   };
+
   const handleLogoutClick = () => {
     if (auth.isAuthenticated) {
       logout();
@@ -34,16 +42,17 @@ const Header = () => {
           className="cursor-pointer flex h-20 w-20"
         />
       </div>
-      <div>
-        <div></div>
-      </div>
       <div className="button-area flex items-center space-x-4">
         <div>
           <div
             onClick={handleAuthClick}
             className="mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors"
           >
-            {auth.isAuthenticated ? "마이 페이지" : "로그인"}
+            {auth.isAuthenticated
+              ? auth.loginInfo?.memberRole === "ROLE_ADMIN"
+                ? "관리자 페이지"
+                : "마이 페이지"
+              : "로그인"}
           </div>
         </div>
         <div>
