@@ -83,40 +83,33 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    axios
-      .delete("/api/auth/logout", {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-        },
-        withCredentials: true,
-      })
-      .then((wrap) => {
-        const header = wrap.data.header;
-        if (header.code[0] === "S") {
-          alert("로그아웃에 되었습니다.");
-        } else {
-          alert("로그아웃 실패");
-        }
-      })
-      .catch((err) => {
-        alert(err);
-      })
-      .finally(() => {
-        sessionStorage.clear();
-        setAuth({
-          loginInfo: null,
-          tokens: null,
-          isAuthenticated: false,
-          socialLoginState: false,
-          longTimeAuth: false,
-        });
-        sessionStorage.removeItem("loginInfo");
-        sessionStorage.removeItem("refreshToken");
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.setItem("isAuthenticated");
-        sessionStorage.setItem("socialLoginState");
-        sessionStorage.setItem("longTimeAuth");
+    axios.delete("/api/auth/logout", { headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`}, withCredentials: true
+    }).then(( wrap ) => {
+      const header = wrap.data.header;
+      if (header.code[0] === 'S'){
+        alert("로그아웃에 되었습니다.")
+      } else {
+        alert("로그아웃 실패")
+      }
+    }).catch(err =>{
+      alert(err);
+    }).finally(() =>{
+      sessionStorage.clear();
+      setAuth({
+        loginInfo: null,
+        tokens: null,
+        isAuthenticated: false,
+        socialLoginState: false,
+        longTimeAuth: false,
       });
+      sessionStorage.removeItem("loginInfo");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("isAuthenticated");
+      sessionStorage.removeItem("socialLoginState");
+      sessionStorage.removeItem("longTimeAuth");
+      navigate("/");
+    })
   };
   if (!ready) {
     return <div>로딩 중</div>;

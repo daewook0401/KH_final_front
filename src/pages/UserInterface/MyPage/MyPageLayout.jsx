@@ -8,7 +8,10 @@ const navItems = [
   { label: "즐겨찾기", path: "/mypage/favorites" },
   { label: "회원 탈퇴", path: "/mypage/delete" },
 ];
-
+if (!!!sessionStorage.getItem("isAuthenticated")){
+  alert("로그인이 필요합니다");
+  useNavigate("/");
+}
 const MyPageLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
