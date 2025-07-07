@@ -16,7 +16,6 @@ const ReservationList = () => {
     axios
       .delete("/api/reservation", {
         params: { reservationNo },
-        headers: { Authorization: `Bearer ${auth?.tokens?.accessToken}` },
       })
       .then(() => {
         alert("예약이 취소되었습니다.");
@@ -33,7 +32,7 @@ const ReservationList = () => {
         <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
           <h4 className="text-lg font-bold text-gray-700 mb-3">내 예약 정보</h4>
 
-          {items.map((item) => (
+          {myReservationBd.items.map((item) => (
             <div
               key={item.reservationNo}
               className="mb-3 border-b last:border-none pb-2"

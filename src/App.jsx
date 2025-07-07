@@ -27,7 +27,6 @@ import ReservationList from "./pages/UserInterface/MyPage/ReservationList";
 import ReviewList from "./pages/UserInterface/MyPage/ReviewList";
 import FavoriteList from "./pages/UserInterface/MyPage/FavoriteList";
 import PasswordConfirmModal from "./pages/UserInterface/MyPage/PasswordConfirmModal";
-import Header from "./common/Header/Header";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
 import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";

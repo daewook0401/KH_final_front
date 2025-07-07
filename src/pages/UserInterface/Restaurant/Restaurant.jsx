@@ -59,13 +59,16 @@ const Restaurant = () => {
   } = useApi(`/api/restaurants/${restaurantId}/rating`);
 
   const { body: operatingInfoBd, refetch: refetchOperating } = useApi(
-    "/api/operatings/memberNo",
-    { method: "get" }
+    "/api/operatings",
+    {
+      method: "get",
+      params: { restaurantNo: restaurantId },
+    }
   );
 
   const { body: reservationSettingBd, refetch: refetchReservation } = useApi(
-    "/api/settings",
-    { method: "get" }
+    "/api/settings/byRestaurantNo",
+    { method: "get", params: { restaurantNo: restaurantId } }
   );
 
   // 카카오맵 좌표를 저장할 state
@@ -159,21 +162,25 @@ const Restaurant = () => {
   }
 
   const cardStyles = "bg-white p-6 border border-gray-200 rounded-lg shadow-sm";
-  console.log("details : ", details);
+  console.log(
+    "details : ",
+    details,
+    "isStoreOwner : ",
+    isStoreOwner,
+    "operatingInfoBd : ",
+    operatingInfoBd,
+    "reservationSettingBd : ",
+    reservationSettingBd
+  );
   return (
     <>
-      {openOperatingTime && (
-        <Operatinghours setOpenOperatingTime={setOpenOperatingTime} />
-      )}
       {openReservation && (
         <Reservation
           setOpenReservation={setOpenReservation}
-          refetchMyReservation={myReservation}
+          restaurantId={restaurantId}
         />
       )}
-      {openReservationSetting && (
-        <Settings setOpenReservationSetting={setOpenReservationSetting} />
-      )}
+
       <div className="flex max-w-[1200px] my-5 mx-auto p-5 gap-5 font-sans bg-gray-50">
         <main className="flex-[3] flex flex-col gap-8">
           {/* -- 식당 기본 정보 -- */}

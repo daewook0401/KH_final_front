@@ -30,7 +30,7 @@ const MyRestaurant = () => {
   );
 
   const { body: reservationSettingBd, refetch: refetchReservation } = useApi(
-    "/api/settings",
+    "/api/settings/byMemberNo",
     { method: "get" }
   );
 
