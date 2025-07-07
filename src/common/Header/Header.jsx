@@ -5,51 +5,42 @@ import { AuthContext } from "../../provider/AuthContext";
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useContext(AuthContext);
-  const handleLogoClick = () => {
-    navigate("/");
-  };
-
-  const handleAuthClick = () => {
-    if (auth.isAuthenticated) {
-      navigate("/mypage");
-    } else {
-      navigate("/login");
-    }
-  };
-  const handleLogoutClick = () => {
-    if (auth.isAuthenticated) {
-      logout();
-    } else {
-      navigate("/sign-up");
-    }
-  };
+  const handleLogoClick = () => navigate("/");
+  const handleAuthClick = () =>
+    auth.isAuthenticated ? navigate("/mypage") : navigate("/login");
+  const handleLogoutClick = () =>
+    auth.isAuthenticated ? logout() : navigate("/sign-up");
 
   return (
-    <header className="flex items-center justify-between h-20 bg-[rgba(255,89,0,0.8)]">
-      <div className="flex h-full items-center ml-5">
-        <img
-          src={logoImage}
-          onClick={handleLogoClick}
-          alt="로고"
-          className="cursor-pointer flex h-20 w-20"
-        />
-      </div>
-      <div>
-        <div></div>
-      </div>
-      <div className="button-area flex items-center space-x-4">
-        <div>
-          <div
-            onClick={handleAuthClick}
-            className="mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors"
-          >
-            {auth.isAuthenticated ? "마이 페이지" : "로그인"}
-          </div>
+    <header className="bg-[rgba(255,89,0,0.8)] h-20">
+      {/* 중앙 고정 컨테이너 */}
+      <div className="h-full mx-auto flex items-center justify-between
+                      w-full max-w-6xl min-w-[320px] px-5">
+        {/* 로고 */}
+        <div className="flex items-center">
+          <img
+            src={logoImage}
+            alt="로고"
+            className="h-16 w-16 cursor-pointer"
+            onClick={handleLogoClick}
+          />
         </div>
-        <div>
+
+        {/* 버튼 영역 */}
+        <div className="flex items-center space-x-8 text-white font-semibold">
           <div
+            className="cursor-pointer hover:text-gray-200 transition-colors"
+            onClick={handleAuthClick}
+          >
+            {auth.isAuthenticated
+              ? auth.loginInfo?.memberRole === "ROLE_ADMIN"
+                ? "관리자 페이지"
+                : "마이 페이지"
+              : "로그인"}
+          </div>
+          <div
+            className="cursor-pointer hover:text-gray-200 transition-colors"
             onClick={handleLogoutClick}
-            className="mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors"
           >
             {auth.isAuthenticated ? "로그아웃" : "회원가입"}
           </div>

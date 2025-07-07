@@ -1,7 +1,6 @@
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import { useState } from "react";
-import { set } from "date-fns";
+i;
 
 const Calendars = ({ selectedDate, setSelectedDate }) => {
   const dateHandler = (date) => {

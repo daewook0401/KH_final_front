@@ -301,7 +301,6 @@ const SignUp = () => {
   // }
   return (
     <>
-      <Header />
       <div className="flex items-center justify-center min-h-screen bg-white py-12 px-4">
         <div className="w-full max-w-md p-8 space-y-6 bg-white border border-gray-200 rounded-xl shadow-lg">
           <h1 className="text-2xl font-bold text-center text-red-500">
