@@ -2,7 +2,6 @@ import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import logoImage from "/src/assets/rog.png";
 import { AuthContext } from "../../provider/AuthContext";
-
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useContext(AuthContext);
@@ -33,7 +32,11 @@ const Header = () => {
             className="cursor-pointer hover:text-gray-200 transition-colors"
             onClick={handleAuthClick}
           >
-            {auth.isAuthenticated ? "마이 페이지" : "로그인"}
+            {auth.isAuthenticated
+              ? auth.loginInfo?.memberRole === "ROLE_ADMIN"
+                ? "관리자 페이지"
+                : "마이 페이지"
+              : "로그인"}
           </div>
           <div
             className="cursor-pointer hover:text-gray-200 transition-colors"
