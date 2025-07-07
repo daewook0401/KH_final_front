@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "../../../common/Header/Header";
 import { nameRegex, nickRegex } from "../../../components/Regex";
 import useApi from "../../../hooks/useApi";
-import { useNavigate } from "react-router-dom";
+import { redirect, useNavigate } from "react-router-dom";
 
 const test = () => {
   const [formData, setFormData] = useState({
@@ -89,7 +89,7 @@ const test = () => {
       const { header } = res;
       if (header.code[0] === "S") {
         alert("소셜 회원가입 완료되었습니다. 메인 페이지로 이동합니다.");
-        navigate("/");
+        redirect("localhost:5173");
       } else {
         alert(`소셜 회원가입 실패: ErrorCode ${header.code}`);
       }
@@ -99,7 +99,6 @@ const test = () => {
   };
   return (
     <>
-      <Header />
       <div className="flex items-center justify-center min-h-screen bg-white py-12 px-4">
         <div className="w-full max-w-md p-8 space-y-6 bg-white border border-gray-200 rounded-xl shadow-lg">
           <h1 className="text-2xl font-bold text-center text-red-500">
