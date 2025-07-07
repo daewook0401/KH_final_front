@@ -11,7 +11,7 @@ const ProfileCard = ({ onEditClick }) => {
     
     <div className="bg-white shadow rounded-lg p-6 flex items-center gap-6">
       <img
-        src={body.items.memberSelfie}
+        src={body.items.memberSelfie === "NULL" ? "https://kh-final-nomnom.s3.ap-northeast-2.amazonaws.com/36bfbb13-14bc-4bcd-994e-9bc4dcf65ba8_free-icon-restrict-photography-15263161.png" : body.items.memberSelfie}
         alt="프로필"
         className="w-24 h-24 rounded-full object-cover"
       />

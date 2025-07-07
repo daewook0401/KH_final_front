@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import ProfileCard from "./ProfileCard";
+import { useState } from "react";
 
 const navItems = [
 
@@ -16,12 +17,17 @@ const MyPageLayout = () => {
   }
   const location = useLocation();
   const navigate = useNavigate();
-
+  const [showEditProfile, setShowEditProfile] = useState(true);  
   const handleNavClick = (path) => () => {
     navigate(path);
   };
   const handleEditClick = () => {
     navigate("/password-confirm");
+  };
+
+  const handleCancel = () => {
+    setShowPasswordConfirm(false);
+    setShowEditProfile(false);
   };
   return (
     // 1) 화면 전체를 flex 컨테이너로, 중앙 정렬
