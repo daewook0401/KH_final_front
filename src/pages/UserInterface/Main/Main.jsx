@@ -74,10 +74,7 @@ const handleImageError = (e) => {
 };
 
 const CategorySection = ({ title, restaurants }) => {
-  // useNavigate 훅을 초기화합니다.
   const navigate = useNavigate();
-
-  // 클릭 시 해당 음식점 상세 페이지로 이동하는 함수
   const goToRestaurantDetail = (restaurantNo) => {
     navigate(`/restaurant/${restaurantNo}`);
   };
@@ -87,24 +84,21 @@ const CategorySection = ({ title, restaurants }) => {
       <h2 className="text-2xl font-bold mb-4">
         <div className="flex justify-between items-center">
           <span>{title}</span>
-          <button className="cursor-pointer text-sm font-bold text-gray-800 hover:text-gray-500 text-[25px]">
+          <button className="text-[25px] font-bold text-gray-800 hover:text-gray-500">
             더보기
           </button>
         </div>
-        <div className="text-sm text-[#fc742f] text-[25px]">추천맛집</div>
+        <div className="text-[25px] text-[#fc742f] text-sm">추천맛집</div>
       </h2>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-        {/* map에서 restaurant_no도 함께 구조 분해 할당으로 가져옵니다. */}
         {restaurants.slice(0, 5).map(({ name, imageUrl, restaurant_no }) => (
           <article
-            // key는 고유한 값인 restaurant_no로 변경하는 것이 좋습니다.
             key={restaurant_no}
-            className="border border-gray-200 rounded-lg overflow-hidden text-center bg-white transition-shadow duration-200 ease-in-out hover:shadow-lg cursor-pointer"
-            // article 태그에 onClick 이벤트를 추가합니다.
             onClick={() => goToRestaurantDetail(restaurant_no)}
+            className="cursor-pointer rounded-lg border border-gray-200 bg-white overflow-hidden text-center transition-shadow hover:shadow-lg"
           >
             <img
-              src={imageUrl || defaultImage}
+              src={imageUrl}
               alt={name}
               onError={handleImageError}
               className="w-full aspect-[4/3] object-cover"
@@ -119,7 +113,7 @@ const CategorySection = ({ title, restaurants }) => {
 
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("검색어:", keyword);
@@ -128,7 +122,8 @@ const Main = () => {
 
   return (
     <>
-      <div className="max-w-[960px] mx-auto py-8 px-4 bg-[#fde4d7]">
+      {/* 중앙 고정 컨테이너 */}
+      <div className="w-full max-w-6xl min-w-[320px] mx-auto bg-orange-50 py-8 px-4">
         <section className="bg-gradient-to-br from-[#ffa868] to-[#ffaa6b] text-white text-center py-10 px-5 rounded-xl">
           <h1 className="mb-6 text-[1.6rem] font-bold leading-tight">
             한눈에 펼쳐보는 서울 맛집 추천
@@ -136,7 +131,7 @@ const Main = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="flex w-full max-w-sm mx-auto mb-6 bg-white rounded-full overflow-hidden"
+            className="mx-auto mb-6 flex w-full max-w-sm overflow-hidden rounded-full bg-white"
           >
             <span className="flex items-center px-3 text-[#ff7750]">
               <FiMapPin size={18} />
@@ -149,7 +144,7 @@ const Main = () => {
             />
             <button
               type="submit"
-              className="bg-[#ff5a3c] text-white px-6 font-semibold border-none cursor-pointer"
+              className="cursor-pointer border-none bg-[#ff5a3c] px-6 font-semibold text-white"
             >
               검색
             </button>
@@ -159,7 +154,7 @@ const Main = () => {
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                className="border-none bg-white text-gray-700 py-1.5 px-3.5 rounded-full text-sm cursor-pointer transition-colors duration-150 hover:bg-[#ffe2d1]"
+                className="cursor-pointer rounded-full bg-white py-1.5 px-3.5 text-sm font-medium text-gray-700 transition-colors hover:bg-[#ffe2d1]"
               >
                 {cat}
               </button>
@@ -167,7 +162,6 @@ const Main = () => {
           </div>
         </section>
 
-        <br />
         <CategorySection title="한식" restaurants={koreanRestaurants} />
         <CategorySection title="중식" restaurants={chineseRestaurants} />
       </div>

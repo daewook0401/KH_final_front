@@ -1,12 +1,25 @@
 import React, { useState } from "react";
 import Header from "../../../common/Header/Header";
+import useApi from "../../../hooks/useApi";
 
 const PasswordConfirmModal = () => {
   const [password, setPassword] = useState("");
-
+  const {header:passwordHeader, body, error, loading, refetch: confirmApi} = useApi('/api/auth/password-confirm', { method: 'post' },false);
   const handleSubmit = () => {
     // TODO: 서버에 비밀번호 검증 요청
-    alert(`입력된 비밀번호: ${password}`);
+    confirmApi({
+      data: {"password": password},
+    }).then(res => {
+      console.log(res.header.code);
+      if (res.header.code[0] === 'S'){
+        sessionStorage.setItem("passwordConfirm", true);
+      } else {
+        sessionStorage.setItem("passwordConfirm", false);
+      }
+    }).catch(err =>{
+      sessionStorage.setItem("passwordConfirm", false);
+      console.log(err);
+    });
   };
 
   return (

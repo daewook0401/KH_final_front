@@ -57,9 +57,9 @@ function App() {
             <Route path="reservations" element={<ReservationList />} />
             <Route path="reviews" element={<ReviewList />} />
             <Route path="favorites" element={<FavoriteList />} />
-            <Route path="password-confirm" element={<PasswordConfirmModal/>} />
             {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
           </Route>
+          <Route path="password-confirm" element={<PasswordConfirmModal/>} />
         </Routes>
 
       </AuthProvider>
