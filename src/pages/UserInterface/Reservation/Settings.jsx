@@ -39,8 +39,11 @@ import {
   TimeRow,
 } from "./Settings.styles";
 
-const Settings = ({ setOpenReservationSetting }) => {
-  const [restaurantNo, setRestaurantNo] = useState("2");
+const Settings = ({
+  setOpenReservationSetting,
+  restaurantNo,
+  refetchReservation,
+}) => {
   const [settingInfo, setSettingInfo] = useState({
     restaurantNo: restaurantNo,
     interval: 30,
@@ -51,8 +54,8 @@ const Settings = ({ setOpenReservationSetting }) => {
   });
   const [reservationTimeInfo, setReservationTimeInfo] = useState(
     [...Array(7)].map(() => ({
-      startTime: "09:00",
-      endTime: "18:00",
+      reservationStartTime: "09:00",
+      reservationEndTime: "18:00",
     }))
   );
   const [dayOfWeek, setDayOfWeek] = useState([
@@ -91,8 +94,8 @@ const Settings = ({ setOpenReservationSetting }) => {
   const toString = (info, time, type) => {
     if (!(time instanceof Date) || isNaN(time)) return "";
     let totalMin = time.getHours() * 60 + time.getMinutes();
-    if (type === "endTime" && info.startTime) {
-      const [sh, sm] = info.startTime.split(":").map(Number);
+    if (type === "endTime" && info.reservationStartTime) {
+      const [sh, sm] = info.reservationStartTime.split(":").map(Number);
       const startMin = sh * 60 + sm;
       if (totalMin <= startMin) totalMin += 24 * 60;
     }
@@ -132,15 +135,15 @@ const Settings = ({ setOpenReservationSetting }) => {
   };
 
   const handleAddTime = (day) => {
-    reservationTimeInfo[day].startTime == "" &&
-    reservationTimeInfo[day].endTime == ""
+    reservationTimeInfo[day].reservationStartTime == "" &&
+    reservationTimeInfo[day].reservationEndTime == ""
       ? setReservationTimeInfo((prev) =>
           prev.map((info, index) =>
             index === day
               ? {
                   ...info,
-                  startTime: "09:00",
-                  endTime: "18:00",
+                  reservationStartTime: "09:00",
+                  reservationEndTime: "18:00",
                 }
               : info
           )
@@ -154,8 +157,8 @@ const Settings = ({ setOpenReservationSetting }) => {
         index === day
           ? {
               ...info,
-              startTime: "",
-              endTime: "",
+              reservationStartTime: "",
+              reservationEndTime: "",
             }
           : info
       )
@@ -174,8 +177,18 @@ const Settings = ({ setOpenReservationSetting }) => {
         reservation: update,
         settingInfo: settingInfo,
       },
-    });
+    })
+      .then(() => {
+        alert("예약설정이 등록되었습니다!");
+        refetchReservation();
+        setOpenReservationSetting(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("예약설정 등록에 실패했습니다.");
+      });
   };
+
   return (
     <>
       <ModalWrapper>
@@ -292,12 +305,15 @@ const Settings = ({ setOpenReservationSetting }) => {
                         color: "#1e2b47",
                       }}
                     />
-                    {info.startTime && info.endTime && (
+                    s
+                    {info.reservationStartTime && info.reservationEndTime && (
                       <DatePickerWrapper>
                         <div>
                           <DatePicker
                             selected={
-                              info.startTime ? toDate(info.startTime) : null
+                              info.reservationStartTime
+                                ? toDate(info.reservationStartTime)
+                                : null
                             }
                             onChange={(time) =>
                               handleTime(time, index, "startTime")
@@ -314,7 +330,9 @@ const Settings = ({ setOpenReservationSetting }) => {
                         <div>
                           <DatePicker
                             selected={
-                              info.endTime ? toDate(info.endTime) : null
+                              info.reservationEndTime
+                                ? toDate(info.reservationEndTime)
+                                : null
                             }
                             onChange={(time) =>
                               handleTime(time, index, "endTime")

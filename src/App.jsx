@@ -30,6 +30,7 @@ import PasswordConfirmModal from "./pages/UserInterface/MyPage/PasswordConfirmMo
 import Header from "./common/Header/Header";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
+import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -56,7 +57,6 @@ function App() {
 
             <Route path="/test" element={<Test />} />
 
-            <Route path="/adminChatting" element={<AdminChatting />} />
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/social-info" element={<SocialInfo />} />
@@ -66,6 +66,7 @@ function App() {
               <Route path="reservations" element={<ReservationList />} />
               <Route path="reviews" element={<ReviewList />} />
               <Route path="favorites" element={<FavoriteList />} />
+              <Route path="restaurant" element={<MyRestaurant />} />
               {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
             </Route>
             <Route path="password-confirm" element={<PasswordConfirmModal />} />

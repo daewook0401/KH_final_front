@@ -1,3 +1,5 @@
+import useApi from "../../../hooks/useApi";
+
 const AdminReservation = () => {
   const {
     header: allReservationHd,

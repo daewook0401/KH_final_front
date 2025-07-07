@@ -58,6 +58,16 @@ const Restaurant = () => {
     error: ratingError,
   } = useApi(`/api/restaurants/${restaurantId}/rating`);
 
+  const { body: operatingInfoBd, refetch: refetchOperating } = useApi(
+    "/api/operatings/memberNo",
+    { method: "get" }
+  );
+
+  const { body: reservationSettingBd, refetch: refetchReservation } = useApi(
+    "/api/settings",
+    { method: "get" }
+  );
+
   // 카카오맵 좌표를 저장할 state
   const [mapCoords, setMapCoords] = useState(null);
 
@@ -119,86 +129,6 @@ const Restaurant = () => {
     }
   });
 
-  const {
-    header: operatingInfoHd,
-    body: operatingInfoBd,
-    refetch: operatingInfo,
-  } = useApi("/api/operatings", {
-    method: "get",
-    params: {
-      restaurantNo: "2",
-    },
-  });
-
-  const {
-    header: myReservationHd,
-    body: myReservationBd,
-    refetch: myReservation,
-  } = useApi("/api/reservation/check", {
-    method: "get",
-    params: {
-      restaurantNo: "2",
-    },
-  });
-
-  const {
-    header: reservationSettingHd,
-    body: reservationSettingBd,
-    refetch: reservationSetting,
-  } = useApi("/api/settings", {
-    method: "get",
-    params: {
-      restaurantNo: "2",
-    },
-  });
-
-  const hasOperatingInfo = operatingInfoBd && operatingInfoBd.items.length > 0;
-  const hasReservationSetting =
-    reservationSettingBd && reservationSettingBd.items.settingInfo;
-  const handleDeleteOperatingTime = () => {
-    axios
-      .delete("/api/reservation", {
-        params: {
-          reservationNo: "2",
-        },
-        headers: {
-          Authorization: `Bearer ${auth?.tokens?.accessToken}`,
-        },
-      })
-      .then((res) => {
-        console.log(res);
-        alert("운영시간 삭제되었습니다!");
-        operatingInfo();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleDeleteReservationSetting = () => {
-    axios
-      .delete("/api/settings", {
-        params: {
-          reservationNo: "2",
-        },
-        headers: {
-          Authorization: `Bearer ${auth?.tokens?.accessToken}`,
-        },
-      })
-      .then((res) => {
-        console.log(res);
-        alert("예약설정 삭제되었습니다!");
-        reservationSetting();
-        operatingInfo();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  console.log(reservationSettingHd, reservationSettingBd);
-  console.log(reservationSettingBd?.items.reservation);
-
   // 주소 복사 핸들러
   const handleCopyAddress = () => {
     if (details?.restaurantAddress) {
@@ -229,7 +159,7 @@ const Restaurant = () => {
   }
 
   const cardStyles = "bg-white p-6 border border-gray-200 rounded-lg shadow-sm";
-
+  console.log("details : ", details);
   return (
     <>
       {openOperatingTime && (
@@ -263,54 +193,11 @@ const Restaurant = () => {
                 </h1>
 
                 <div className="flex gap-2">
-                  {isStoreOwner && (
-                    <>
-                      {/* 운영시간 버튼 */}
-                      {!hasOperatingInfo ? (
-                        <button
-                          onClick={() => setOpenOperatingTime(true)}
-                          className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold hover:bg-[#e66a45]"
-                        >
-                          운영시간 등록
-                        </button>
-                      ) : (
-                        // 운영시간 삭제 버튼: 예약설정 없을 때만 표시
-                        !hasReservationSetting && (
-                          <button
-                            onClick={handleDeleteOperatingTime}
-                            className="bg-red-500 text-white py-1.5 px-3 rounded font-bold hover:bg-red-600"
-                          >
-                            운영시간 삭제
-                          </button>
-                        )
-                      )}
-
-                      {/* 예약설정 버튼 */}
-                      {hasOperatingInfo && (
-                        <>
-                          {!hasReservationSetting ? (
-                            <button
-                              onClick={() => setOpenReservationSetting(true)}
-                              className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold hover:bg-[#e66a45]"
-                            >
-                              예약설정 등록
-                            </button>
-                          ) : (
-                            <button
-                              onClick={handleDeleteReservationSetting}
-                              className="bg-red-500 text-white py-1.5 px-3 rounded font-bold hover:bg-red-600"
-                            >
-                              예약설정 삭제
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
-
                   {!isStoreOwner &&
-                    hasOperatingInfo &&
-                    hasReservationSetting && (
+                    operatingInfoBd &&
+                    (reservationSettingBd?.items?.reservation || []).length >
+                      0 &&
+                    reservationSettingBd?.items?.settingInfo && (
                       <button
                         onClick={() => setOpenReservation(true)}
                         className="bg-[#ff7750] text-white py-1.5 px-3 rounded font-bold hover:bg-[#e66a45]"
@@ -445,64 +332,6 @@ const Restaurant = () => {
           <div className="text-sm text-gray-600 mt-2">
             클릭시 카카오맵에서 해당 위치를 확인할 수 있습니다.
           </div>
-
-          {reservationSettingBd?.items && isStoreOwner && (
-            <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-700 mb-3">
-                예약 설정 정보
-              </h4>
-
-              {reservationSettingBd.items.settingInfo && (
-                <div className="mb-4 text-sm text-gray-700 space-y-1">
-                  <p>
-                    <strong>설명:</strong>{" "}
-                    {reservationSettingBd.items.settingInfo.description}
-                  </p>
-                  <p>
-                    <strong>예약 인원:</strong>{" "}
-                    {reservationSettingBd.items.settingInfo.minNum}명 ~{" "}
-                    {reservationSettingBd.items.settingInfo.maxNum}명
-                  </p>
-                  <p>
-                    <strong>최대 팀 수:</strong>{" "}
-                    {reservationSettingBd.items.settingInfo.maxTeamNum}팀
-                  </p>
-                  <p>
-                    <strong>예약 간격:</strong>{" "}
-                    {reservationSettingBd.items.settingInfo.interval}분
-                  </p>
-                </div>
-              )}
-
-              {reservationSettingBd.items.reservation && isStoreOwner && (
-                <div className="text-sm text-gray-700">
-                  <h5 className="font-semibold mb-1">요일별 예약 가능 시간</h5>
-                  <ul className="space-y-1">
-                    {reservationSettingBd.items.reservation.map((item, idx) => {
-                      const dayMap = {
-                        Monday: "월",
-                        Tuesday: "화",
-                        Wednesday: "수",
-                        Thursday: "목",
-                        Friday: "금",
-                        Saturday: "토",
-                        Sunday: "일",
-                      };
-                      return (
-                        <li key={idx}>
-                          <span className="font-medium">
-                            {dayMap[item.weekDay] || item.weekDay}
-                          </span>
-                          : {item.reservationStartTime} ~{" "}
-                          {item.reservationEndTime}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
         </aside>
       </div>
     </>
