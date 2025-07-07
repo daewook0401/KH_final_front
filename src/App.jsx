@@ -29,6 +29,7 @@ import FavoriteList from "./pages/UserInterface/MyPage/FavoriteList";
 import PasswordConfirmModal from "./pages/UserInterface/MyPage/PasswordConfirmModal";
 import Header from "./common/Header/Header";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
+import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -59,7 +60,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/social-info" element={<SocialInfo />} />
-            <Route path="/test" element={<Test />}/>
+            <Route path="/test" element={<Test />} />
             <Route path="/mypage" element={<MyPageLayout />}>
               <Route path="profile" element={<ProfileCard />} />
               <Route path="reservations" element={<ReservationList />} />
@@ -67,20 +68,18 @@ function App() {
               <Route path="favorites" element={<FavoriteList />} />
               {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
             </Route>
-            <Route path="password-confirm" element={<PasswordConfirmModal/>} />
+            <Route path="password-confirm" element={<PasswordConfirmModal />} />
           </Route>
 
           <Route path="/admin" element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="main" element={<AdminMain />} />
               <Route path="chatting" element={<AdminChatPage />} />
+              <Route path="reservations" element={<AdminReservation />} />
             </Route>
           </Route>
 
-
-          
           <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
-
         </Routes>
       </AuthProvider>
     </>

@@ -122,28 +122,8 @@ const Restaurant = () => {
       });
   };
 
-  const handleCancelReservation = (reservationNo) => {
-    axios
-      .delete("/api/reservation", {
-        params: {
-          reservationNo: reservationNo,
-        },
-        headers: {
-          Authorization: `Bearer ${auth?.tokens?.accessToken}`,
-        },
-      })
-      .then((res) => {
-        console.log(res);
-        alert("예약이 취소되었습니다.");
-        myReservation();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
   console.log(reservationSettingHd, reservationSettingBd);
-  console.log(reservationSettingBd.items.reservation);
+  console.log(reservationSettingBd?.items.reservation);
 
   useEffect(() => {
     const fetchAllData = async () => {
