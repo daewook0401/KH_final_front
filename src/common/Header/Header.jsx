@@ -7,15 +7,21 @@ const Header = () => {
   const { auth, logout } = useContext(AuthContext);
   const handleLogoClick = () => navigate("/");
   const handleAuthClick = () =>
-    auth.isAuthenticated ? navigate("/mypage") : navigate("/login");
+    auth.isAuthenticated
+      ? auth.loginInfo.memberRole !== "ROLE_ADMIN"
+        ? navigate("/mypage")
+        : navigate("/admin/main")
+      : navigate("/login");
   const handleLogoutClick = () =>
     auth.isAuthenticated ? logout() : navigate("/sign-up");
 
   return (
     <header className="bg-[rgba(255,89,0,0.8)] h-20">
       {/* 중앙 고정 컨테이너 */}
-      <div className="h-full mx-auto flex items-center justify-between
-                      w-full max-w-6xl min-w-[320px] px-5">
+      <div
+        className="h-full mx-auto flex items-center justify-between
+                      w-full max-w-6xl min-w-[320px] px-5"
+      >
         {/* 로고 */}
         <div className="flex items-center">
           <img

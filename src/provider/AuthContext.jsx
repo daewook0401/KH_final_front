@@ -1,13 +1,12 @@
 import { useState, useEffect, createContext, Children } from "react";
 import { useNavigate } from "react-router-dom";
 import cookies from "js-cookie";
-import axios from "../api/AxiosInterCeptor"
+import axios from "../api/AxiosInterCeptor";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export const AuthContext = createContext();
 const GOOGLE_CLIENT = window.ENV?.GOOGLE_CLIENT;
 export const AuthProvider = ({ children }) => {
-  
   const navigate = useNavigate();
   const [auth, setAuth] = useState({
     loginInfo: null,
@@ -17,39 +16,64 @@ export const AuthProvider = ({ children }) => {
     longTimeAuth: false,
   });
   const [ready, setReady] = useState(false);
-  useEffect(() => {
-      axios.post("/api/auth/refresh", {}, { headers: { Authorization: `Bearer ${sessionStorage.getItem("refreshToken")}` },
-            withCredentials: true })
-        .then(res => {
-          if (res.data.header.code[0] === 'S'){
-            login(res.data.body.items.loginInfo, res.data.body.items.tokens, sessionStorage.getItem("socialLoginState"), sessionStorage.getItem("longTimeAuth"));
-          }})
-        .catch(err => {
-          console.error(err);
-        }).finally(()=>{
-          setReady(true);
+  useEffect(
+    () => {
+      axios
+        .post(
+          "/api/auth/refresh",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("refreshToken")}`,
+            },
+            withCredentials: true,
+          }
+        )
+        .then((res) => {
+          if (res.data.header.code[0] === "S") {
+            login(
+              res.data.body.items.loginInfo,
+              res.data.body.items.tokens,
+              sessionStorage.getItem("socialLoginState"),
+              sessionStorage.getItem("longTimeAuth")
+            );
+          }
         })
-      }, [], [auth]);
+        .catch((err) => {
+          console.error(err);
+        })
+        .finally(() => {
+          setReady(true);
+        });
+    },
+    [],
+    [auth]
+  );
   useEffect(() => {
     console.log(auth.socialLoginState);
-    if (auth.socialLoginState && auth.loginInfo?.isModify === "N"){
+    if (auth.socialLoginState && auth.loginInfo?.isModify === "N") {
       navigate("/social-info", { replace: true });
     }
-  }, [auth, ready, navigate])
+  }, [auth, ready, navigate]);
 
-  const login = (loginInfo, tokens, socialLogin = false, longTimeAuth = false) => {
+  const login = (
+    loginInfo,
+    tokens,
+    socialLogin = false,
+    longTimeAuth = false
+  ) => {
     console.log("login");
     setAuth({
       loginInfo: loginInfo,
       tokens: tokens,
       isAuthenticated: true,
-      socialLoginState: socialLogin, 
-      longTimeAuth: longTimeAuth
+      socialLoginState: socialLogin,
+      longTimeAuth: longTimeAuth,
     });
-    if (loginInfo !== null){
+    if (loginInfo !== null) {
       sessionStorage.setItem("loginInfo", JSON.stringify(loginInfo));
     }
-    if (tokens !== null){
+    if (tokens !== null) {
       sessionStorage.setItem("refreshToken", tokens.refreshToken);
       sessionStorage.setItem("accessToken", tokens.accessToken);
     }
@@ -59,41 +83,49 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    axios.delete("/api/auth/logout", { headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`}, withCredentials: true
-    }).then(( wrap ) => {
-      const header = wrap.data.header;
-      if (header.code[0] === 'S'){
-        alert("로그아웃에 되었습니다.")
-      } else {
-        alert("로그아웃 실패")
-      }
-    }).catch(err =>{
-      alert(err);
-    }).finally(() =>{
-      sessionStorage.clear();
-      setAuth({
-        loginInfo: null,
-        tokens: null,
-        isAuthenticated: false,
-        socialLoginState: false,
-        longTimeAuth: false,
+    axios
+      .delete("/api/auth/logout", {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        },
+        withCredentials: true,
+      })
+      .then((wrap) => {
+        const header = wrap.data.header;
+        if (header.code[0] === "S") {
+          alert("로그아웃에 되었습니다.");
+        } else {
+          alert("로그아웃 실패");
+        }
+      })
+      .catch((err) => {
+        alert(err);
+      })
+      .finally(() => {
+        sessionStorage.clear();
+        setAuth({
+          loginInfo: null,
+          tokens: null,
+          isAuthenticated: false,
+          socialLoginState: false,
+          longTimeAuth: false,
+        });
+        sessionStorage.removeItem("loginInfo");
+        sessionStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.setItem("isAuthenticated");
+        sessionStorage.setItem("socialLoginState");
+        sessionStorage.setItem("longTimeAuth");
       });
-      sessionStorage.removeItem("loginInfo");
-      sessionStorage.removeItem("refreshToken");
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.setItem("isAuthenticated");
-      sessionStorage.setItem("socialLoginState");
-      sessionStorage.setItem("longTimeAuth");
-    })
   };
-  if (!ready){
-    return <div>로딩 중</div>
+  if (!ready) {
+    return <div>로딩 중</div>;
   }
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT}>
-    <AuthContext.Provider value={{auth, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={{ auth, login, logout }}>
+        {children}
+      </AuthContext.Provider>
     </GoogleOAuthProvider>
   );
 };

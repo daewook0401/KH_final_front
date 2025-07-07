@@ -143,6 +143,8 @@ const Restaurant = () => {
   };
 
   console.log(reservationSettingHd, reservationSettingBd);
+  console.log(reservationSettingBd.items.reservation);
+
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -253,8 +255,6 @@ const Restaurant = () => {
         .then(() => alert("주소가 복사되었습니다!"));
     }
   };
-
-  useEffect(() => {});
 
   if (loading) {
     return <div className="text-center p-12 text-lg">로딩 중...</div>;
@@ -482,45 +482,7 @@ const Restaurant = () => {
           <div className="text-sm text-gray-600 mt-2">
             클릭시 카카오맵에서 해당 위치를 확인할 수 있습니다.
           </div>
-          {myReservationBd?.items?.length > 0 && (
-            <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-700 mb-3">
-                내 예약 정보
-              </h4>
-              {myReservationBd.items.map((item) => (
-                <div
-                  key={item.reservationNo}
-                  className="mb-3 border-b last:border-none pb-2"
-                >
-                  <p className="text-gray-700 font-medium">
-                    예약 날짜:{" "}
-                    <span className="font-bold">{item.reserveDay}</span>
-                  </p>
-                  <p className="text-gray-700 font-medium">
-                    예약 시간:{" "}
-                    <span className="font-bold">{item.reserveTime}</span>
-                  </p>
-                  <p className="text-gray-700 font-medium">
-                    인원:{" "}
-                    <span className="font-bold">{item.numberOfGuests}명</span>
-                  </p>
-                  <p className="text-gray-700 font-medium">
-                    예약 상태:{" "}
-                    <span className="font-bold">
-                      {item.status ? item.status : "확인 중"}
-                    </span>
-                  </p>
 
-                  <button
-                    onClick={() => handleCancelReservation(item.reservationNo)}
-                    className="mt-2 px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                  >
-                    예약 취소
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
           {reservationSettingBd?.items && isStoreOwner && (
             <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
               <h4 className="text-lg font-bold text-gray-700 mb-3">
