@@ -7,12 +7,11 @@ import axios from "axios";
 const AdminChatPage = () => {
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const apiUrl = window.ENV?.API_URL || "http://localhost:80";
 
   useEffect(() => {
     // 채팅방 목록 불러오기
     axios
-      .get(`${apiUrl}/api/chatting/admin/list`)
+      .get(`/api/chatting/admin/list`)
       .then((res) => {
         console.log(res.data.body.items);
         setRooms(res.data.body.items); // 예: [{roomNo: "1", userName: "홍길동", lastMessage: "..."}]
@@ -30,13 +29,11 @@ const AdminChatPage = () => {
       />
 
       {/* 오른쪽 채팅방 상세 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex justify-center items-center p-6">
         {selectedRoom ? (
           <ChatRoomDetail room={selectedRoom} />
         ) : (
-          <div className="flex flex-1 items-center justify-center text-gray-500 text-lg">
-            채팅방을 선택해주세요
-          </div>
+          <div className="text-gray-500 text-lg">채팅방을 선택해주세요</div>
         )}
       </div>
     </div>

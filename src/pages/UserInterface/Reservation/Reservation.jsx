@@ -39,11 +39,10 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
   const [times, setTimes] = useState({});
   const { auth } = useContext(AuthContext);
   const accessToken = auth?.tokens?.accessToken;
-  const apiUrl = window.ENV?.API_URL || "http://localhost:80";
 
   useEffect(() => {
     axios
-      .get(`${apiUrl}/api/reservation/info`, {
+      .get(`/api/reservation/info`, {
         params: { restaurantNo: restaurantId },
       })
       .then((res) => {
