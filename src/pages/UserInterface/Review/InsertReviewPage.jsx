@@ -1,4 +1,10 @@
-import { useState, useEffect, useRef, useContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useContext,
+  forwardRef,
+} from "react";
 import axios from "axios";
 import InputScore from "../../../components/review/InputScore";
 import ImageUploader from "../../../components/review/ImageUploader";
@@ -7,13 +13,16 @@ import BillVerification from "../../../components/review/BillVerification";
 import { AuthContext } from "../../../provider/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-function InsertReviewPage({
-  restaurantNo: propRestaurantNo,
-  onSubmitSuccess,
-  focusReviewTextarea,
-  editReview = null,
-  cancelEdit,
-}) {
+const InsertReviewPage = forwardRef(function InsertReviewPage(
+  {
+    restaurantNo: propRestaurantNo,
+    onSubmitSuccess,
+    focusReviewTextarea,
+    editReview = null,
+    cancelEdit,
+  },
+  ref
+) {
   const restaurantNo = propRestaurantNo || 1;
 
   const [score, setScore] = useState(0);
@@ -104,16 +113,9 @@ function InsertReviewPage({
       }
     }
 
-    // 데이터가 잘 넘어가는지 확인용 콘솔 출력
-    console.log("=== 제출 데이터 확인 ===");
-    for (let pair of formData.entries()) {
-      console.log(pair[0], ":", pair[1]);
-    }
-
-    /*
     const reviewUrl = editReview
-      ? `/api/reviews/${editReview.reviewNo}`
-      : "/api/reviews";
+      ? `/api/restaurants/${restaurantNo}/reviews/${editReview.reviewNo}`
+      : `/api/restaurants/${restaurantNo}/reviews`;
 
     axios({
       method: editReview ? "put" : "post",
@@ -121,6 +123,7 @@ function InsertReviewPage({
       data: formData,
       headers: {
         "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${auth.tokens.accessToken}`,
       },
       withCredentials: true,
     })
@@ -140,10 +143,6 @@ function InsertReviewPage({
       .finally(() => {
         setLoading(false);
       });
-    */
-
-    // 임시로 로딩 상태 해제
-    setLoading(false);
   };
 
   const handleSubmit = (e) => {
@@ -158,7 +157,12 @@ function InsertReviewPage({
   };
 
   return (
-    <div className="flex overflow-x-hidden bg-gray-100">
+    <div
+      ref={ref}
+      tabIndex={-1}
+      className="flex overflow-x-hidden bg-gray-100"
+      style={{ outline: "none" }}
+    >
       <div className="max-w-[850px] w-full p-6 space-y-6 bg-gray-200 rounded-lg">
         <h1 className="text-2xl font-bold">
           {editReview ? "리뷰 수정" : "리뷰 작성"}
@@ -225,6 +229,6 @@ function InsertReviewPage({
       />
     </div>
   );
-}
+});
 
 export default InsertReviewPage;
