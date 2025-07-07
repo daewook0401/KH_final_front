@@ -218,7 +218,6 @@ const Restaurant = () => {
 
   console.log(reservationSettingHd, reservationSettingBd);
 
-
   // 주소 복사 핸들러
   const handleCopyAddress = () => {
     if (details?.restaurantAddress) {
@@ -227,7 +226,6 @@ const Restaurant = () => {
         .then(() => alert("주소가 복사되었습니다!"));
     }
   };
-
 
   // 로딩 및 에러 상태를 종합적으로 관리
   const loading = detailsLoading || ratingLoading;
@@ -447,7 +445,7 @@ const Restaurant = () => {
           </section>
 
           {/* -- 리뷰 영역 (수정 안 함) -- */}
-          {/*<ReviewPage restaurantNo={restaurantId} />*/}
+          <ReviewPage restaurantNo={restaurantId} />
         </main>
 
         <aside className="flex-1">

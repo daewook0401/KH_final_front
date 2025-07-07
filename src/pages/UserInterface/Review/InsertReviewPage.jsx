@@ -94,28 +94,47 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     setError(null);
 
     const formData = new FormData();
-    formData.append("restaurantNo", restaurantNo);
-    formData.append("reviewScore", score);
-    formData.append("reviewContent", content);
-    formData.append("billPass", "Y");
 
+    // review 객체를 JSON으로 변환 후 Blob으로 감싸서 review라는 이름으로 넣기
+    const reviewDTO = {
+      reviewScore: score,
+      reviewContent: content,
+      billPass: "Y",
+    };
+    formData.append(
+      "review",
+      new Blob([JSON.stringify(reviewDTO)], { type: "application/json" })
+    );
+
+    // 새로 추가된 사진만 photos로 append
     images.forEach((image) => {
       if (image.type === "new") {
-        formData.append("images", image.file);
+        formData.append("photos", image.file);
       }
     });
 
-    if (billImage) {
-      if (typeof billImage === "string") {
-        formData.append("billImageUrl", billImage);
+    // billPhoto는 파일일 때만 append (문자열 URL일 경우 제외)
+    if (billImage && typeof billImage !== "string") {
+      formData.append("billPhoto", billImage);
+    }
+
+    // formData 내용 콘솔 출력
+    for (let pair of formData.entries()) {
+      if (pair[1] instanceof File || pair[1] instanceof Blob) {
+        console.log(pair[0], "파일/Blob:", pair[1]);
       } else {
-        formData.append("billImageFile", billImage);
+        console.log(pair[0], pair[1]);
       }
     }
 
+    // restaurantNo는 쿼리 파라미터로 추가
+    const queryParams = new URLSearchParams({
+      restaurantNo: String(restaurantNo),
+    }).toString();
+
     const reviewUrl = editReview
-      ? `/api/restaurants/${restaurantNo}/reviews/${editReview.reviewNo}`
-      : `/api/restaurants/${restaurantNo}/reviews`;
+      ? `/reviews/${editReview.reviewNo}?${queryParams}`
+      : `/reviews?${queryParams}`;
 
     axios({
       method: editReview ? "put" : "post",
