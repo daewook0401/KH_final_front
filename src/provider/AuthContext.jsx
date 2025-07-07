@@ -50,7 +50,8 @@ export const AuthProvider = ({ children }) => {
     [auth]
   );
   useEffect(() => {
-    if (sessionStorage.getItem("loginInfo") !== null && JSON.parse(sessionStorage.getItem("loginInfo")).isActive === "N"){
+    const loginInfo = JSON.parse(sessionStorage.getItem("loginInfo"))
+    if (loginInfo !== null && loginInfo.isActive === "N"){
       alert("비활성 사용자입니다. 로그아웃 됩니다.");
       setAuth({
         loginInfo: null,
