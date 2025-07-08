@@ -31,11 +31,8 @@ import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
 import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
 import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
-<<<<<<< HEAD
 import AdminRestaurantPage from "./pages/AdminInterface/AdminRestaurant/AdminRestaurantPage";
-=======
 import EditProfilePage from "./pages/UserInterface/MyPage/EditProfilePage";
->>>>>>> 9843a8c582bc10023a3f28fa6dfb51903eaab88f
 
 function App() {
   const [count, setCount] = useState(0);
@@ -74,7 +71,10 @@ function App() {
               <Route path="restaurant" element={<MyRestaurant />} />
               {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
             </Route>
-            <Route path="/password-confirm" element={<PasswordConfirmModal />} />
+            <Route
+              path="/password-confirm"
+              element={<PasswordConfirmModal />}
+            />
             <Route path="/edit-profile" element={<EditProfilePage />} />
           </Route>
 
