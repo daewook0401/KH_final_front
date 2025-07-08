@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import Header from "../../../common/Header/Header";
 import useApi from "../../../hooks/useApi";
+import { useNavigate } from "react-router-dom";
 
 const PasswordConfirmModal = () => {
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const {header:passwordHeader, body, error, loading, refetch: confirmApi} = useApi('/api/auth/password-confirm', { method: 'post' },false);
   const handleSubmit = () => {
@@ -12,12 +13,15 @@ const PasswordConfirmModal = () => {
     }).then(res => {
       console.log(res.header.code);
       if (res.header.code[0] === 'S'){
-        sessionStorage.setItem("passwordConfirm", true);
+        sessionStorage.setItem("passwordConfirm", "true");
+        navigate("/edit-profile");
       } else {
-        sessionStorage.setItem("passwordConfirm", false);
+        sessionStorage.setItem("passwordConfirm", "false");
+        alert("비밀번호 인증 실패");
       }
     }).catch(err =>{
-      sessionStorage.setItem("passwordConfirm", false);
+      alert("비밀번호 인증 실패");
+      sessionStorage.setItem("passwordConfirm", "false");
       console.log(err);
     });
   };
