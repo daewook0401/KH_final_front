@@ -1,4 +1,4 @@
-import { useState, useMemo, useContext, useEffect } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../../provider/AuthContext";
@@ -16,13 +16,14 @@ function ReviewPage({ restaurantNo }) {
   const isAdmin = roles.includes("ROLE_ADMIN");
 
   const itemsPerPage = 3;
-  const [sortKey, setSortKey] = useState("ratingDesc");
-  const [currentPage, setCurrentPage] = useState(1);
+  const myItemsPerPage = 1;
+
   const [reviews, setReviews] = useState([]);
+  const [sortedReviews, setSortedReviews] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [myReviewPage, setMyReviewPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // 새로 추가: 수정할 리뷰 상태
   const [editReview, setEditReview] = useState(null);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ function ReviewPage({ restaurantNo }) {
     axios
       .get(`/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
       .then((res) => {
+        console.log("리뷰 API 응답 데이터:", res.data);
         const reviewData = res.data?.body?.items?.reviews;
         setReviews(Array.isArray(reviewData) ? reviewData : []);
       })
@@ -45,23 +47,15 @@ function ReviewPage({ restaurantNo }) {
   }, [restaurantNo, currentPage]);
 
   const safeReviews = Array.isArray(reviews) ? reviews : [];
+
   const myReviews = safeReviews.filter(
     (r) => user && r.memberNo === user.memberNo
   );
-  const otherReviews = safeReviews.filter(
-    (r) => !user || r.memberNo !== user.memberNo
-  );
 
-  const sortedReviews = useMemo(() => {
-    switch (sortKey) {
-      case "ratingAsc":
-        return [...otherReviews].sort((a, b) => a.reviewScore - b.reviewScore);
-      case "ratingDesc":
-        return [...otherReviews].sort((a, b) => b.reviewScore - a.reviewScore);
-      default:
-        return otherReviews;
-    }
-  }, [otherReviews, sortKey]);
+  const myPagedReviews = useMemo(() => {
+    const start = (myReviewPage - 1) * myItemsPerPage;
+    return myReviews.slice(start, start + myItemsPerPage);
+  }, [myReviews, myReviewPage]);
 
   const pagedReviews = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -75,7 +69,6 @@ function ReviewPage({ restaurantNo }) {
     pageSize: 5,
   };
 
-  // 수정 버튼 클릭 시 이동 대신 상태로 관리
   const handleEditReview = (review) => {
     if (!auth.isAuthenticated) {
       alert("로그인 후 수정이 가능합니다.");
@@ -83,7 +76,6 @@ function ReviewPage({ restaurantNo }) {
       return;
     }
     setEditReview(review);
-    // 스크롤 위치 조정(선택사항)
     const el = document.getElementById("insert-review");
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
@@ -110,7 +102,6 @@ function ReviewPage({ restaurantNo }) {
       })
       .then(() => {
         alert("리뷰가 삭제되었습니다.");
-
         const nextPage = currentPage > 1 ? currentPage - 1 : 1;
 
         return axios
@@ -121,6 +112,7 @@ function ReviewPage({ restaurantNo }) {
             const reviewData = res.data?.body?.items?.reviews;
             setReviews(Array.isArray(reviewData) ? reviewData : []);
             setCurrentPage(nextPage);
+            setMyReviewPage(1);
           });
       })
       .catch((error) => {
@@ -139,7 +131,6 @@ function ReviewPage({ restaurantNo }) {
     const el = document.getElementById("insert-review");
     if (el) el.scrollIntoView({ behavior: "smooth" });
 
-    // 작성 모드로 전환하려면 editReview 초기화
     setEditReview(null);
   };
 
@@ -149,25 +140,38 @@ function ReviewPage({ restaurantNo }) {
       className="w-full max-w-[900px] mx-auto bg-gray-50 min-h-screen font-sans space-y-6"
     >
       <MyReview
-        reviews={myReviews}
+        reviews={myPagedReviews}
         onWriteReview={handleWriteReview}
         onEditReview={handleEditReview}
         onDeleteReview={handleDeleteReview}
       />
 
+      {myReviews.length > myItemsPerPage && (
+        <Pagination
+          currentPage={myReviewPage}
+          setCurrentPage={setMyReviewPage}
+          pageInfo={{
+            boardNoPerPage: myItemsPerPage,
+            totalBoardNo: myReviews.length,
+            pageSize: 5,
+          }}
+        />
+      )}
+
       <InsertReviewPage
         id="insert-review"
         restaurantNo={restaurantNo}
-        editReview={editReview} // 수정할 리뷰 전달
-        cancelEdit={cancelEdit} // 수정 취소 함수 전달
+        editReview={editReview}
+        cancelEdit={cancelEdit}
         onSubmitSuccess={() => {
-          setEditReview(null); // 제출 성공 시 수정 모드 해제
+          setEditReview(null);
           axios
             .get(`/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
             .then((res) => {
               const reviewData = res.data?.body?.items?.reviews;
               setReviews(Array.isArray(reviewData) ? reviewData : []);
               setCurrentPage(1);
+              setMyReviewPage(1);
             })
             .catch((err) => {
               console.error("리뷰 새로고침 실패:", err);
@@ -188,9 +192,9 @@ function ReviewPage({ restaurantNo }) {
       ) : (
         <>
           <SortSelector
-            sortKey={sortKey}
-            onChange={(key) => {
-              setSortKey(key);
+            reviews={reviews}
+            onSorted={(sorted) => {
+              setSortedReviews(sorted);
               setCurrentPage(1);
             }}
           />

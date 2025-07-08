@@ -86,7 +86,6 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
       return;
     }
 
-    // 수정 모드가 아닐 때만 영수증 인증 체크
     if (!editReview && !billImage) {
       alert("영수증 인증이 필요합니다.");
       return;
