@@ -17,7 +17,7 @@ const ChattingBtn = () => {
   useEffect(() => {
     if (chatOpen) {
       axios
-        .get(`${apiUrl}/api/chatting/roomNo`)
+        .get(`/api/chatting/roomNo`)
         .then((response) => {
           setRoomNo(response.data.body.items.roomNo);
         })

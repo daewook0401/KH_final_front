@@ -30,7 +30,6 @@ const StarRating = ({ averageRating, reviewCount }) => {
 const Restaurant = () => {
   // URL 파라미터에서 식당 ID를 가져옵니다.
   const { restaurant_no: restaurantId } = useParams();
-  const [buttonType, setButtonType] = useState(3);
   const [restaurantData, setRestaurantData] = useState({
     details: null,
     ratingInfo: null,
@@ -38,8 +37,6 @@ const Restaurant = () => {
   });
   //const [loading, setLoading] = useState(true);
   //const [error, setError] = useState(null);
-  const [openOperatingTime, setOpenOperatingTime] = useState(false);
-  const [openReservationSetting, setOpenReservationSetting] = useState(false);
   const [openReservation, setOpenReservation] = useState(false);
   const { auth } = useContext(AuthContext);
   const [isStoreOwner, setIsStoreOwner] = useState(false);

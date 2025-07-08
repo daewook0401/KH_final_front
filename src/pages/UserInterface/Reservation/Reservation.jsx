@@ -69,17 +69,6 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
       .catch(console.error);
   }, [restaurantId, selectedDate]);
 
-  // useEffect(() => {
-  //   if (reservationInfoBd) {
-  //     setMaxPeople(reservationInfoBd.items.maxNum);
-  //     setMinPeople(reservationInfoBd.items.minNum);
-  //   }
-  //   if (avilableTimeBd) {
-  //     setTimes(avilableTimeBd.items.resultMap);
-  //   }
-  //   avilableTime();
-  // }, [selectedDate]);
-
   // const {
   //   header: reservationInfoHd,
   //   body: reservationInfoBd,
