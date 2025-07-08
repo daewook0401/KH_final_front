@@ -9,7 +9,6 @@ function MyReview({ reviews, onWriteReview, onEditReview, onDeleteReview }) {
   return (
     <div className="space-y-3">
       <h2 className="text-xl font-semibold">내 리뷰</h2>
-
       {reviews.map((review) => (
         <ReviewItem
           key={review.reviewNo}

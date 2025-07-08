@@ -8,7 +8,11 @@ const Header = () => {
   const { auth, logout } = useContext(AuthContext);
   const handleLogoClick = () => navigate("/");
   const handleAuthClick = () =>
-    auth.isAuthenticated ? navigate("/mypage") : navigate("/login");
+    auth.isAuthenticated
+      ? auth.loginInfo.memberRole !== "ROLE_ADMIN"
+        ? navigate("/mypage")
+        : navigate("/admin/main")
+      : navigate("/login");
   const handleLogoutClick = () =>
     auth.isAuthenticated ? logout() : navigate("/sign-up");
 
