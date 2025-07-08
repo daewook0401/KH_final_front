@@ -27,8 +27,9 @@ import ReservationList from "./pages/UserInterface/MyPage/ReservationList";
 import ReviewList from "./pages/UserInterface/MyPage/ReviewList";
 import FavoriteList from "./pages/UserInterface/MyPage/FavoriteList";
 import PasswordConfirmModal from "./pages/UserInterface/MyPage/PasswordConfirmModal";
-import Header from "./common/Header/Header";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
+import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
+import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
 import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
 import EditProfilePage from "./pages/UserInterface/MyPage/EditProfilePage";
 
@@ -57,7 +58,6 @@ function App() {
 
             <Route path="/test" element={<Test />} />
 
-            <Route path="/adminChatting" element={<AdminChatting />} />
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/social-info" element={<SocialInfo />} />
@@ -67,6 +67,7 @@ function App() {
               <Route path="reservations" element={<ReservationList />} />
               <Route path="reviews" element={<ReviewList />} />
               <Route path="favorites" element={<FavoriteList />} />
+              <Route path="restaurant" element={<MyRestaurant />} />
               {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
             </Route>
             <Route path="/password-confirm" element={<PasswordConfirmModal />} />
@@ -76,8 +77,9 @@ function App() {
           <Route path="/admin" element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="main" element={<AdminMain />} />
-              <Route path="users" element={<AdminUserManagement />}/>
+              <Route path="users" element={<AdminUserManagement />} />
               <Route path="chatting" element={<AdminChatPage />} />
+              <Route path="reservations" element={<AdminReservation />} />
             </Route>
           </Route>
 

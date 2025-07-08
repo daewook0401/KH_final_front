@@ -30,25 +30,20 @@ import {
   ModalWrapper,
   TimeBox,
 } from "./ReservationStyles";
-const Reservation = ({ setOpenReservation, refetchMyReservation }) => {
+const Reservation = ({ setOpenReservation, restaurantId }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedCount, setSelectedCount] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [restaurantNo, setRestaurantNo] = useState("2");
   const [minPeople, setMinPeople] = useState(null); // 예시값
   const [maxPeople, setMaxPeople] = useState(null);
   const [times, setTimes] = useState({});
   const { auth } = useContext(AuthContext);
   const accessToken = auth?.tokens?.accessToken;
-  const apiUrl = window.ENV?.API_URL || "http://localhost:80";
 
   useEffect(() => {
     axios
-      .get(`${apiUrl}/api/reservation/info`, {
-        params: { restaurantNo },
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+      .get(`/api/reservation/info`, {
+        params: { restaurantNo: restaurantId },
       })
       .then((res) => {
         console.log("result :", res.data);
@@ -62,7 +57,7 @@ const Reservation = ({ setOpenReservation, refetchMyReservation }) => {
     axios
       .get("/api/reservation", {
         params: {
-          restaurantNo,
+          restaurantNo: restaurantId,
           reserveDay: selectedDate.toISOString().slice(0, 10),
         },
       })
@@ -71,7 +66,7 @@ const Reservation = ({ setOpenReservation, refetchMyReservation }) => {
         setTimes(res.data.body.items.resultMap);
       })
       .catch(console.error);
-  }, [restaurantNo, selectedDate]);
+  }, [restaurantId, selectedDate]);
 
   // useEffect(() => {
   //   if (reservationInfoBd) {
@@ -112,7 +107,7 @@ const Reservation = ({ setOpenReservation, refetchMyReservation }) => {
   const handleSubmit = () => {
     axios
       .post("/api/reservation", {
-        restaurantNo: restaurantNo,
+        restaurantNo: restaurantId,
         reserveDay: selectedDate.toISOString().slice(0, 10),
         numberOfGuests: selectedCount,
         reserveTime: selectedTime,
@@ -121,7 +116,6 @@ const Reservation = ({ setOpenReservation, refetchMyReservation }) => {
         console.log(res);
         alert("예약이 등록되었습니다!");
         setOpenReservation(false);
-        refetchMyReservation();
       })
       .catch(console.error);
   };
@@ -220,7 +214,7 @@ const Reservation = ({ setOpenReservation, refetchMyReservation }) => {
             </ModalRight>
           </ModalContent>
           <ModalFooter>
-            <EnrollButton onClick={handleSubmit}>등록하기</EnrollButton>
+            <EnrollButton onClick={handleSubmit}>예약하기</EnrollButton>
           </ModalFooter>
         </ModalLabel>
       </ModalWrapper>

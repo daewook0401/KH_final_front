@@ -10,14 +10,13 @@ const ChattingBtn = () => {
   const [messages, setMessages] = useState([]);
   const [roomNo, setRoomNo] = useState("");
   const [content, setContent] = useState("");
-  const apiUrl = window.ENV?.API_URL || "http://localhost:80";
 
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (chatOpen) {
       axios
-        .get(`${apiUrl}/api/chatting/roomNo`)
+        .get(`/api/chatting/roomNo`)
         .then((response) => {
           setRoomNo(response.data.body.items.roomNo);
         })
@@ -28,7 +27,7 @@ const ChattingBtn = () => {
   useEffect(() => {
     if (roomNo) {
       axios
-        .get(`${apiUrl}/api/chatting/${roomNo}`)
+        .get(`/api/chatting/${roomNo}`)
         .then((res) => {
           setMessages(res.data.body.items);
         })

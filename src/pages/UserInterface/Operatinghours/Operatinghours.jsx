@@ -7,6 +7,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ClearIcon from "@mui/icons-material/Clear";
 import useApi from "../../../hooks/useApi";
+import { useNavigate } from "react-router-dom";
 
 import {
   ModalWrapper,
@@ -26,8 +27,12 @@ import {
   ModalFooter,
 } from "./operatingHoursStyles";
 
-const Operatinghours = ({ setOpenOperatingTime }) => {
-  const [restaurantNo, setRestaurantNo] = useState("2");
+const Operatinghours = ({
+  setOpenOperatingTime,
+  restaurantNo,
+  refetchOperating,
+}) => {
+  const navi = useNavigate();
   const [operatingHoursInfo, setOperatingHoursInfo] = useState(
     [...Array(7)].map(() => ({
       startTime: "09:00",
@@ -184,11 +189,18 @@ const Operatinghours = ({ setOpenOperatingTime }) => {
       weekDay: dayOfWeek[i],
     }));
     console.log(update);
-    refetch({ data: update });
+    refetch({ data: update })
+      .then(() => {
+        alert("운영시간이 등록되었습니다!");
+        refetchOperating();
+        setOpenOperatingTime(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("운영시간 등록에 실패했습니다.");
+      });
   };
-  if (error) {
-    alert(error);
-  }
+
   // ──────────────────────────────────────────────────────────────────────
   return (
     <ModalWrapper>
