@@ -8,7 +8,6 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ClearIcon from "@mui/icons-material/Clear";
 import useApi from "../../../hooks/useApi";
 import { useNavigate } from "react-router-dom";
-
 import {
   ModalWrapper,
   CloseBtn,
@@ -25,7 +24,7 @@ import {
   Span,
   H2,
   ModalFooter,
-} from "./operatingHoursStyles";
+} from "./OperatingHoursStyles";
 
 const Operatinghours = ({
   setOpenOperatingTime,
