@@ -33,7 +33,6 @@ function ReviewPage({ restaurantNo }) {
     axios
       .get(`/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
       .then((res) => {
-        console.log("리뷰 API 응답 데이터:", res.data);
         const reviewData = res.data?.body?.items?.reviews;
         setReviews(Array.isArray(reviewData) ? reviewData : []);
       })
