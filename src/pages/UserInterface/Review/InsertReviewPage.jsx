@@ -40,20 +40,15 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
   useEffect(() => {
     if (editReview) {
       setScore(editReview.reviewScore);
-      setContent(editReview.reviewContent);
+      setContent(editReview.reviewContent ?? "");
       setImages(
         editReview.photos?.map((photo) => ({
           type: "existing",
           url: photo.reviewPhotoUrl,
         })) || []
       );
-      if (editReview.billPhotoUrl) {
-        setBillImage(editReview.billPhotoUrl);
-      } else {
-        setBillImage(null);
-      }
+      setBillImage(editReview.billPhotoUrl || null);
     } else {
-      // 수정모드가 아닐 땐 상태 초기화
       setScore(0);
       setContent("");
       setImages([]);
