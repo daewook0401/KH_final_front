@@ -445,7 +445,7 @@ const Restaurant = () => {
           </section>
 
           {/* -- 리뷰 영역 (수정 안 함) -- */}
-          {/*<ReviewPage restaurantNo={restaurantId} />*/}
+          <ReviewPage restaurantNo={restaurantId} />
         </main>
 
         <aside className="flex-1">
