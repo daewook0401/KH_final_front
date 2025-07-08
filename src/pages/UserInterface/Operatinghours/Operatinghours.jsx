@@ -130,8 +130,20 @@ const Operatinghours = ({
   };
 
   // 영업 시간
-  const handleTime = (time, dayIdx, type) => {
+  const handleTime = (info, time, dayIdx, type) => {
     if (!check10Min(time)) return;
+    if (
+      type === "startTime" &&
+      toDate(info.breakStartTime) < time &&
+      time < toDate(info.breakEndTime)
+    ) {
+      alert("시작시각이 브레이크 타임 사이에 있을 수 없습니다.");
+      return;
+    }
+    if (type === "endTime" && toDate(info.breakEndTime) > time) {
+      alert("마감시각은 브레이크 종료시각보다 이후여야 합니다.");
+      return;
+    }
     updateTime(time, dayIdx, type);
   };
 
@@ -143,10 +155,11 @@ const Operatinghours = ({
       alert("브레이크 시작은 영업 시작 이후여야 합니다.");
       return;
     }
-    if (type === "breakEndTime" && toDate(info.endTime) > time) {
+    if (type === "breakEndTime" && toDate(info.endTime) < time) {
       alert("브레이크 종료는 영업 종료 이전이어야 합니다.");
       return;
     }
+
     updateTime(time, dayIdx, type);
   };
 
@@ -239,7 +252,7 @@ const Operatinghours = ({
                             info.startTime ? toDate(info.startTime) : null
                           }
                           onChange={(time) =>
-                            handleTime(time, dayIdx, "startTime")
+                            handleTime(info, time, dayIdx, "startTime")
                           }
                           showTimeSelect
                           showTimeSelectOnly
@@ -254,7 +267,7 @@ const Operatinghours = ({
                         <DatePicker
                           selected={info.endTime ? toDate(info.endTime) : null}
                           onChange={(time) =>
-                            handleTime(time, dayIdx, "endTime")
+                            handleTime(info, time, dayIdx, "endTime")
                           }
                           showTimeSelect
                           showTimeSelectOnly
