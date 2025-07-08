@@ -36,7 +36,7 @@ function ReviewPage({ restaurantNo }) {
         setReviews(Array.isArray(reviewData) ? reviewData : []);
       })
       .catch((err) => {
-        console.error("❌ 리뷰 요청 실패:", err);
+        console.error("리뷰를 불러오는 중 오류가 발생했습니다.", err);
         setError(err);
       })
       .finally(() => {
