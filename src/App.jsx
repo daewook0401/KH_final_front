@@ -30,6 +30,7 @@ import PasswordConfirmModal from "./pages/UserInterface/MyPage/PasswordConfirmMo
 import Header from "./common/Header/Header";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
+import AdminRestaurantPage from "./pages/AdminInterface/AdminRestaurant/AdminRestaurantPage";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -74,8 +75,9 @@ function App() {
           <Route path="/admin" element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="main" element={<AdminMain />} />
-              <Route path="users" element={<AdminUserManagement />}/>
+              <Route path="users" element={<AdminUserManagement />} />
               <Route path="chatting" element={<AdminChatPage />} />
+              <Route path="restaurants" element={<AdminRestaurantPage />} />
             </Route>
           </Route>
 
