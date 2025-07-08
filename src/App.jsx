@@ -31,6 +31,7 @@ import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
 import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
 import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
+import AdminRestaurantPage from "./pages/AdminInterface/AdminRestaurant/AdminRestaurantPage";
 import EditProfilePage from "./pages/UserInterface/MyPage/EditProfilePage";
 
 function App() {
@@ -79,6 +80,7 @@ function App() {
               <Route path="main" element={<AdminMain />} />
               <Route path="users" element={<AdminUserManagement />} />
               <Route path="chatting" element={<AdminChatPage />} />
+              <Route path="restaurants" element={<AdminRestaurantPage />} />
               <Route path="reservations" element={<AdminReservation />} />
             </Route>
           </Route>
