@@ -3,10 +3,19 @@ import ProfileCard from "./ProfileCard";
 import { useContext, useState, useEffect } from "react";
 import AuthContext from "../../../provider/AuthContext";
 
+
+const navItems = [
+  { label: "예약 내역", path: "/mypage/reservations" },
+  { label: "리뷰 내역", path: "/mypage/reviews" },
+  { label: "즐겨찾기", path: "/mypage/favorites" },
+  { label: "회원 탈퇴", path: "/mypage/delete" },
+];
+
 const MyPageLayout = () => {
   const { auth } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
+  const [showEditProfile, setShowEditProfile] = useState(true);  
   const [navItems, setNavItems] = useState([
     { label: "예약 내역", path: "/mypage/reservations" },
     { label: "리뷰 내역", path: "/mypage/reviews" },
@@ -26,12 +35,16 @@ const MyPageLayout = () => {
       ]);
     }
   }, []);
-
   const handleNavClick = (path) => () => {
     navigate(path);
   };
   const handleEditClick = () => {
     navigate("/password-confirm");
+  };
+
+  const handleCancel = () => {
+    setShowPasswordConfirm(false);
+    setShowEditProfile(false);
   };
   return (
     // 1) 화면 전체를 flex 컨테이너로, 중앙 정렬

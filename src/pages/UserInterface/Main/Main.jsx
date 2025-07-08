@@ -109,7 +109,7 @@ const Main = () => {
         {/* 상단 검색 및 카테고리 버튼 영역 (생략) */}
         <section className="bg-gradient-to-br from-[#ffa868] to-[#ffaa6b] text-white text-center py-10 px-5 rounded-xl">
           <h1 className="mb-6 text-[1.6rem] font-bold leading-tight">
-            한눈에 펼쳐보는 서울 맛집 추천
+            한눈에 펼쳐보는 맛집 추천
           </h1>
           <form
             onSubmit={handleSubmit}

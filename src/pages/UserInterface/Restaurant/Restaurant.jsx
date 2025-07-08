@@ -159,6 +159,18 @@ const Restaurant = () => {
   }
 
   const cardStyles = "bg-white p-6 border border-gray-200 rounded-lg shadow-sm";
+  const dayOrder = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+  const sortedItems = [...operatingInfoBd.items].sort(
+    (a, b) => dayOrder.indexOf(a.weekDay) - dayOrder.indexOf(b.weekDay)
+  );
   console.log(
     "details : ",
     details,
@@ -230,7 +242,7 @@ const Restaurant = () => {
                     운영 시간
                   </h4>
                   <ul className="space-y-1 text-sm text-gray-700">
-                    {operatingInfoBd.items.map((item, idx) => {
+                    {sortedItems.map((item, idx) => {
                       const dayMap = {
                         Monday: "월",
                         Tuesday: "화",
@@ -241,13 +253,6 @@ const Restaurant = () => {
                         Sunday: "일",
                       };
                       const dayKor = dayMap[item.weekDay] || item.weekDay;
-
-                      const endTimeDisplay =
-                        item.endTime >= "24:00"
-                          ? `${parseInt(item.endTime.split(":")[0], 10) - 24}:${
-                              item.endTime.split(":")[1]
-                            }`
-                          : item.endTime;
 
                       return (
                         <li key={idx}>
