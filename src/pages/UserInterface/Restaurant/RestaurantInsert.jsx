@@ -37,7 +37,30 @@ const RestaurantInsert = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "storePhone") {
+
+    // 바이트 계산을 위한 헬퍼 함수
+    const getByteLength = (s) => new TextEncoder().encode(s).length;
+
+    if (name === "storeName") {
+      // 16자를 초과하는 입력은 자릅니다.
+      const limitedValue = value.slice(0, 16);
+      // 50바이트를 초과하면 더 이상 입력되지 않도록 합니다.
+      if (getByteLength(limitedValue) > 50) {
+        alert("가게 이름은 50바이트를 초과할 수 없습니다.");
+        return; // 상태 업데이트를 막습니다.
+      }
+      setFormData((prev) => ({ ...prev, [name]: limitedValue }));
+    } else if (name === "storeDescription") {
+      // 96자를 초과하는 입력은 자릅니다.
+      const limitedValue = value.slice(0, 96);
+      // 300바이트를 초과하면 더 이상 입력되지 않도록 합니다.
+      if (getByteLength(limitedValue) > 300) {
+        alert("가게 설명은 300바이트를 초과할 수 없습니다.");
+        return; // 상태 업데이트를 막습니다.
+      }
+      setFormData((prev) => ({ ...prev, [name]: limitedValue }));
+    } else if (name === "storePhone") {
+      // (기존 전화번호 로직)
       const cleaned = value.replace(/[^0-9]/g, "");
       let formatted = "";
       if (cleaned.startsWith("02")) {

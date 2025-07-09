@@ -33,6 +33,7 @@ import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
 import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
 import AdminRestaurantPage from "./pages/AdminInterface/AdminRestaurant/AdminRestaurantPage";
 import EditProfilePage from "./pages/UserInterface/MyPage/EditProfilePage";
+import SearchResultsPage from "./pages/UserInterface/Restaurant/SearchResultsPage";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -49,6 +50,7 @@ function App() {
               path="/reviews/:restaurant_no"
               element={<InsertReviewPage />}
             />
+            <Route path="/search-results" element={<SearchResultsPage />} />
             <Route path="/operatinghours" element={<Operatinghours />} />
             <Route path="/reservation" element={<Reservation />} />
             <Route path="/settings" element={<Settings />} />

@@ -28,24 +28,31 @@ const StarRating = ({ averageRating, reviewCount }) => {
  * 식당 상세 페이지 전체를 구성하는 메인 컴포넌트
  */
 const Restaurant = () => {
-  // URL 파라미터에서 식당 ID를 가져옵니다.
   const { restaurant_no: restaurantId } = useParams();
+  const { auth } = useContext(AuthContext);
+
+  // --- 기존 코드의 모든 상태(State) 변수 ---
   const [buttonType, setButtonType] = useState(3);
   const [restaurantData, setRestaurantData] = useState({
     details: null,
     ratingInfo: null,
     menuItems: [],
   });
-  //const [loading, setLoading] = useState(true);
-  //const [error, setError] = useState(null);
   const [openOperatingTime, setOpenOperatingTime] = useState(false);
   const [openReservationSetting, setOpenReservationSetting] = useState(false);
   const [openReservation, setOpenReservation] = useState(false);
-  const { auth } = useContext(AuthContext);
   const [isStoreOwner, setIsStoreOwner] = useState(false);
   const [map, setMap] = useState(true);
+  const [mapCoords, setMapCoords] = useState(null);
 
-  // useApi 훅을 사용하여 식당 상세 정보와 별점 정보를 각각 API로 호출합니다.
+  // --- 메뉴 기능에 필요한 상태(State)만 추가 ---
+  const [menuItems, setMenuItems] = useState([]); // 메뉴 목록
+  const [menuOwner, setMenuOwner] = useState(false); // 메뉴 수정 권한자 여부
+  const [hasMoreMenus, setHasMoreMenus] = useState(false); // 더보기 버튼 표시 여부
+  const [menuPage, setMenuPage] = useState(0); // 메뉴 페이지 번호
+  const [menuLoading, setMenuLoading] = useState(true); // 메뉴 로딩 상태
+
+  // --- 기존 코드의 모든 useApi 훅 ---
   const {
     body: details,
     loading: detailsLoading,
@@ -71,34 +78,62 @@ const Restaurant = () => {
     { method: "get", params: { restaurantNo: restaurantId } }
   );
 
-  // 카카오맵 좌표를 저장할 state
-  const [mapCoords, setMapCoords] = useState(null);
+  // --- 기존 mockMenuItems 더미 데이터 삭제 ---
+  // const mockMenuItems = [ ... ]; // 이 부분을 완전히 삭제합니다.
 
-  // 메뉴 정보는 요청대로 더미 데이터로 유지합니다.
-  const mockMenuItems = [
-    {
-      menuId: 1,
-      menuName: "감성 그릴드 파히타",
-      menuPrice: 38000,
-      menuImageUrl:
-        "https://via.placeholder.com/150/cccccc/808080?text=메뉴+사진1",
-    },
-    {
-      menuId: 2,
-      menuName: "까르니따스 치즈 타코",
-      menuPrice: 12000,
-      menuImageUrl: null,
-    },
-    {
-      menuId: 3,
-      menuName: "과카몰리 나초",
-      menuPrice: 9000,
-      menuImageUrl:
-        "https://via.placeholder.com/150/cccccc/808080?text=메뉴+사진2",
-    },
-  ];
+  // --- 메뉴 데이터 API 호출 기능 추가 ---
+  // useEffect(() => {
+  //   // 메뉴 데이터만 가져오는 별도의 함수
+  //   const fetchMenus = async (page) => {
+  //     setMenuLoading(true);
+  //     try {
+  //       const response = await axios.get(
+  //         `/api/restaurants/${restaurantId}/menu?page=${page}&size=5`
+  //       );
+  //       const { header, body } = response.data;
 
-  // 주소를 좌표로 변환하기 위한 useEffect 훅
+  //       if (header.code === "S200") {
+  //         setMenuItems((prevItems) =>
+  //           page === 0 ? body.menus : [...prevItems, ...body.menus]
+  //         );
+  //         setMenuOwner(body.isOwner); // API 응답의 isOwner를 menuOwner 상태에 저장
+  //         setHasMoreMenus(body.hasMore);
+  //       }
+  //     } catch (err) {
+  //       console.error("메뉴 정보를 불러오는 데 실패했습니다:", err);
+  //     } finally {
+  //       setMenuLoading(false);
+  //     }
+  //   };
+
+  //   if (restaurantId) {
+  //     fetchMenus(0); // 첫 페이지 메뉴 데이터 로드
+  //   }
+  // }, [restaurantId]);
+
+  // 메뉴 '더보기' 버튼 클릭 핸들러
+  const handleLoadMoreMenus = () => {
+    const nextPage = menuPage + 1;
+    setMenuPage(nextPage);
+
+    const fetchMoreMenus = async () => {
+      try {
+        const response = await axios.get(
+          `/api/restaurants/${restaurantId}/menu?page=${nextPage}&size=5`
+        );
+        const { header, body } = response.data;
+        if (header.code === "S200") {
+          setMenuItems((prevItems) => [...prevItems, ...body.menus]);
+          setHasMoreMenus(body.hasMore);
+        }
+      } catch (err) {
+        console.error("추가 메뉴 정보를 불러오는 데 실패했습니다:", err);
+      }
+    };
+    fetchMoreMenus();
+  };
+
+  // --- 기존 코드의 모든 useEffect 훅 ---
   useEffect(() => {
     if (details && details.restaurantAddress) {
       if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
@@ -132,7 +167,7 @@ const Restaurant = () => {
     }
   });
 
-  // 주소 복사 핸들러
+  // --- 기존 코드의 모든 핸들러 및 변수 선언 ---
   const handleCopyAddress = () => {
     if (details?.restaurantAddress) {
       navigator.clipboard
@@ -141,25 +176,21 @@ const Restaurant = () => {
     }
   };
 
-  // 로딩 및 에러 상태를 종합적으로 관리
   const loading = detailsLoading || ratingLoading;
   const error = detailsError || ratingError;
 
-  if (loading) {
+  if (loading)
     return (
       <div className="text-center p-12 text-lg">가게 정보를 불러오는 중...</div>
     );
-  }
-  if (error) {
+  if (error)
     return (
       <div className="text-center p-12 text-lg text-red-600">오류: {error}</div>
     );
-  }
-  if (!details || !ratingInfo) {
+  if (!details || !ratingInfo || !operatingInfoBd)
     return (
       <div className="text-center p-12">가게 정보를 표시할 수 없습니다.</div>
     );
-  }
 
   const cardStyles = "bg-white p-6 border border-gray-200 rounded-lg shadow-sm";
   const dayOrder = [
@@ -174,16 +205,7 @@ const Restaurant = () => {
   const sortedItems = [...operatingInfoBd.items].sort(
     (a, b) => dayOrder.indexOf(a.weekDay) - dayOrder.indexOf(b.weekDay)
   );
-  console.log(
-    "details : ",
-    details,
-    "isStoreOwner : ",
-    isStoreOwner,
-    "operatingInfoBd : ",
-    operatingInfoBd,
-    "reservationSettingBd : ",
-    reservationSettingBd
-  );
+
   return (
     <>
       {openReservation && (
@@ -192,10 +214,9 @@ const Restaurant = () => {
           restaurantId={restaurantId}
         />
       )}
-
       <div className="flex max-w-[1200px] my-5 mx-auto p-5 gap-5 font-sans bg-gray-50">
         <main className="flex-[3] flex flex-col gap-8">
-          {/* -- 식당 기본 정보 -- */}
+          {/* -- 식당 기본 정보 (기존과 동일) -- */}
           <section className={cardStyles}>
             <img
               src={details.restaurantMainPhoto || defaultImage}
@@ -210,7 +231,6 @@ const Restaurant = () => {
                 <h1 className="mt-1 text-3xl font-bold text-gray-800">
                   {details.restaurantName}
                 </h1>
-
                 <div className="flex gap-2">
                   {!isStoreOwner &&
                     operatingInfoBd &&
@@ -256,7 +276,6 @@ const Restaurant = () => {
                         Sunday: "일",
                       };
                       const dayKor = dayMap[item.weekDay] || item.weekDay;
-
                       return (
                         <li key={idx}>
                           <span className="font-medium">{dayKor}</span>{" "}
@@ -276,7 +295,7 @@ const Restaurant = () => {
             </div>
           </section>
 
-          {/* -- 가게 설명 -- */}
+          {/* -- 가게 설명 (기존과 동일) -- */}
           <section className={cardStyles}>
             <h3 className="mt-0 mb-4 text-[#ff7750] text-xl font-bold">
               가게 설명
@@ -286,20 +305,35 @@ const Restaurant = () => {
             </p>
           </section>
 
-          {/* -- 메뉴 정보 (더미 데이터) -- */}
+          {/* --- 메뉴 정보 (기능이 추가된 새로운 코드) --- */}
           <section className={cardStyles}>
-            <h2 className="mt-0 mb-4 text-[#ff7750] text-xl font-bold">
-              메뉴 정보
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="mt-0 text-[#ff7750] text-xl font-bold">
+                메뉴 정보
+              </h2>
+              {menuOwner && (
+                <button
+                  className="bg-gray-200 text-gray-700 py-1.5 px-3 rounded font-bold hover:bg-gray-300"
+                  onClick={() => alert("메뉴 수정 기능 구현 예정")}
+                >
+                  메뉴 수정
+                </button>
+              )}
+            </div>
             <div className="flex flex-col border-t-2 border-gray-100">
               <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-4 px-2.5 border-b border-gray-100 font-bold text-gray-600 bg-gray-50">
                 <div>메뉴</div>
                 <div className="text-right pr-5">가격</div>
                 <div className="text-center">사진</div>
               </div>
-              {mockMenuItems.map((item) => (
+              {menuLoading && menuItems.length === 0 && (
+                <div className="text-center p-8 text-gray-500">
+                  메뉴를 불러오는 중...
+                </div>
+              )}
+              {menuItems.map((item) => (
                 <div
-                  key={item.menuId}
+                  key={item.menuNo}
                   className="grid grid-cols-[2fr_1fr_1fr] items-center py-4 px-2.5 border-b border-gray-100"
                 >
                   <div className="font-bold text-gray-800">{item.menuName}</div>
@@ -307,9 +341,9 @@ const Restaurant = () => {
                     {item.menuPrice.toLocaleString()}원
                   </div>
                   <div className="flex justify-center items-center h-20">
-                    {item.menuImageUrl ? (
+                    {item.menuPhotoUrl ? (
                       <img
-                        src={item.menuImageUrl}
+                        src={item.menuPhotoUrl}
                         alt={item.menuName}
                         className="max-w-full max-h-full object-cover rounded"
                       />
@@ -322,14 +356,23 @@ const Restaurant = () => {
                 </div>
               ))}
             </div>
+            {hasMoreMenus && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={handleLoadMoreMenus}
+                  className="w-full bg-[#ff7750] text-white py-2.5 px-4 rounded font-bold hover:bg-[#e66a45] transition-colors"
+                >
+                  더보기
+                </button>
+              </div>
+            )}
           </section>
 
-          {/* -- 리뷰 영역 (수정 안 함) -- */}
+          {/* -- 리뷰 영역 (기존과 동일) -- */}
           <ReviewPage restaurantNo={restaurantId} />
         </main>
 
         <aside className="flex-1">
-          {/* 카카오맵: 변환된 좌표(mapCoords)가 있을 때만 렌더링 */}
           {mapCoords ? (
             <KakaoMap
               lat={mapCoords.lat}
