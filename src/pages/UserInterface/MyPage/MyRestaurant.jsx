@@ -258,9 +258,9 @@ const MyRestaurant = () => {
                     <div key={key} className="flex py-1 text-sm items-center">
                       <span className="w-10 font-semibold">{label}</span>
                       <span>
-                        {r
+                        {r && r.reservationStartTime && r.reservationEndTime
                           ? `${r.reservationStartTime} ~ ${r.reservationEndTime}`
-                          : "~"}
+                          : "-"}
                       </span>
                     </div>
                   );
@@ -270,11 +270,13 @@ const MyRestaurant = () => {
               {/* 기본 설정(인터벌 등) */}
               <div className="mt-3 text-xs text-gray-600 leading-5 space-y-0.5">
                 <p className="font-semibold">기본 설정</p>
-                <p>· 예약 간격: {settingInfo.interval}분</p>
-                <p>· 최소 인원: {settingInfo.minNum}명</p>
-                <p>· 최대 인원: {settingInfo.maxNum}명</p>
-                <p>· 한 타임당 최대 팀 수: {settingInfo.maxTeamNum}팀</p>
-                {settingInfo.description && (
+                <p>· 예약 간격: {settingInfo?.interval ?? "-"}분</p>
+                <p>· 최소 인원: {settingInfo?.minNum ?? "-"}명</p>
+                <p>· 최대 인원: {settingInfo?.maxNum ?? "-"}명</p>
+                <p>
+                  · 한 타임당 최대 팀 수: {settingInfo?.maxTeamNum ?? "-"}팀
+                </p>
+                {settingInfo?.description && (
                   <p>· 메모: {settingInfo.description}</p>
                 )}
               </div>
