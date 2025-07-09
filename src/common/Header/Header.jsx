@@ -46,6 +46,12 @@ const Header = () => {
         <div className="flex items-center space-x-8 text-white font-semibold">
           <div
             className="cursor-pointer hover:text-gray-200 transition-colors"
+            onClick={handleRegisterClick}
+          >
+            {auth.isAuthenticated ? "가계등록" : ""}
+          </div>
+          <div
+            className="cursor-pointer hover:text-gray-200 transition-colors"
             onClick={handleAuthClick}
           >
             {auth.isAuthenticated
