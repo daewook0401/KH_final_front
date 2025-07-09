@@ -34,6 +34,8 @@ import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserMan
 import AdminRestaurantPage from "./pages/AdminInterface/AdminRestaurant/AdminRestaurantPage";
 import EditProfilePage from "./pages/UserInterface/MyPage/EditProfilePage";
 import SearchResultsPage from "./pages/UserInterface/Restaurant/SearchResultsPage";
+import FindingId from "./pages/UserInterface/Login/FindingId";
+import FindingPw from "./pages/UserInterface/Login/FindingPw";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -91,6 +93,9 @@ function App() {
           </Route>
 
           <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
+          <Route path="/finding-id" element={<FindingId />} />
+          <Route path="/finding-password" element={<FindingPw />} />
+
         </Routes>
       </AuthProvider>
     </>
