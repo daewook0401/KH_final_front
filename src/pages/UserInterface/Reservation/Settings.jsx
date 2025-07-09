@@ -83,6 +83,7 @@ const Settings = ({
   };
 
   const handleTime = (time, dayIdx, type) => {
+    console.log("handleTime : ", handleTime);
     if (!check10Min(time)) return;
     updateTime(time, dayIdx, type);
   };
@@ -303,7 +304,7 @@ const Settings = ({
                                 : null
                             }
                             onChange={(time) =>
-                              handleTime(time, index, "startTime")
+                              handleTime(time, index, "reservationStartTime")
                             }
                             showTimeSelect
                             showTimeSelectOnly
@@ -324,7 +325,7 @@ const Settings = ({
                                 : null
                             }
                             onChange={(time) =>
-                              handleTime(time, index, "endTime")
+                              handleTime(time, index, "reservationEndTime")
                             }
                             showTimeSelect
                             showTimeSelectOnly
