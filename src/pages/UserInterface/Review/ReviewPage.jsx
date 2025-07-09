@@ -27,7 +27,7 @@ function ReviewPage({ restaurantNo }) {
   );
 
   const { refetch: deleteReview } = useApi(
-    `/api/restaurants/${restaurantNo}/reviews`,
+    `/api/reviews`,
     { method: "delete" },
     false
   );
@@ -84,7 +84,7 @@ function ReviewPage({ restaurantNo }) {
     if (!confirmDelete) return;
 
     deleteReview({
-      url: `/api/restaurants/${restaurantNo}/reviews/${reviewNo}`,
+      params: { reviewNo },
     })
       .then(() => {
         alert("리뷰가 삭제되었습니다.");

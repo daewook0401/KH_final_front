@@ -9,8 +9,8 @@ import useApi from "../../../hooks/useApi";
 // 설정: 화면에 표시할 카테고리 목록
 const DISPLAY_CATEGORIES = ["한식", "중식", "일식", "양식"];
 
-// 설정: 상단에 표시할 전체 카테고리 버튼 목록
-const ALL_CATEGORIES = ["한식", "중식", "일식", "양식", "분식", "디저트"];
+// 설정: 상단에 표시할 전체 카테고리 버튼 목록 나중에 지원 예정
+const ALL_CATEGORIES = [];
 
 /**
  * [UI 담당] 카테고리별 맛집 리스트 섹션을 화면에 그리는 컴포넌트
@@ -38,9 +38,6 @@ const CategorySection = ({ title, restaurants, loading, error }) => {
       <h2 className="text-2xl font-bold mb-4">
         <div className="flex justify-between items-center">
           <span>{title}</span>
-          <button className="text-[25px] font-bold text-gray-800 hover:text-gray-500">
-            더보기
-          </button>
         </div>
         <div className="text-[25px] text-[#fc742f] text-sm">추천맛집</div>
       </h2>
@@ -97,25 +94,35 @@ const CategoryRestaurants = ({ categoryName }) => {
  */
 const Main = () => {
   const [keyword, setKeyword] = useState("");
+  const navigate = useNavigate(); // 🎨 1. useNavigate 훅을 호출합니다.
+
+  /**
+   * 🎨 2. 검색 폼 제출 시 SearchResultsPage로 이동시키는 함수
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("검색어:", keyword);
-    setKeyword("");
+    // 검색어가 비어있지 않을 때만 이동합니다.
+    if (keyword.trim()) {
+      navigate(`/search-results?query=${keyword}`);
+    } else {
+      alert("검색어를 입력해주세요.");
+    }
   };
 
   return (
     <>
-      <div className="max-w-[960px] mx-auto py-8 px-4 bg-[#fde4d7]">
-        {/* 상단 검색 및 카테고리 버튼 영역 (생략) */}
-        <section className="bg-gradient-to-br from-[#ffa868] to-[#ffaa6b] text-white text-center py-10 px-5 rounded-xl">
-          <h1 className="mb-6 text-[1.6rem] font-bold leading-tight">
+      <div className="max-w-[960px] mx-auto py-8 px-4">
+        {/* 상단 검색 섹션 */}
+        {/* bg-gradient-to-br from-[#ffa868] to-[#ffaa6b]이 너무 강해 이미지와 유사한 색으로 변경 */}
+        <section className="bg-[#fec89a] text-white text-center py-10 px-5 rounded-xl">
+          <h1 className="mb-6 text-2xl md:text-[1.6rem] font-bold leading-tight text-gray-800">
             한눈에 펼쳐보는 맛집 추천
           </h1>
           <form
             onSubmit={handleSubmit}
-            className="mx-auto mb-6 flex w-full max-w-sm overflow-hidden rounded-full bg-white"
+            className="mx-auto mb-6 flex w-full max-w-sm overflow-hidden rounded-full bg-white shadow"
           >
-            <span className="flex items-center px-3 text-[#ff7750]">
+            <span className="flex items-center pl-4 pr-2 text-gray-400">
               <FiMapPin size={18} />
             </span>
             <input
@@ -126,7 +133,7 @@ const Main = () => {
             />
             <button
               type="submit"
-              className="cursor-pointer border-none bg-[#ff5a3c] px-6 font-semibold text-white"
+              className="cursor-pointer border-none bg-[#ff5a3c] px-6 font-semibold text-white transition-colors hover:bg-red-600"
             >
               검색
             </button>
@@ -135,7 +142,7 @@ const Main = () => {
             {ALL_CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                className="cursor-pointer rounded-full bg-white py-1.5 px-3.5 text-sm font-medium text-gray-700 transition-colors hover:bg-[#ffe2d1]"
+                className="cursor-pointer rounded-full bg-white py-1.5 px-3.5 text-sm font-medium text-gray-700 transition-colors hover:bg-orange-50"
               >
                 {cat}
               </button>
@@ -145,7 +152,7 @@ const Main = () => {
 
         <br />
 
-        {/* 5. 카테고리 목록을 순회하며 데이터 호출 담당 컴포넌트를 렌더링 */}
+        {/* 카테고리별 맛집 목록 */}
         {DISPLAY_CATEGORIES.map((category) => (
           <CategoryRestaurants key={category} categoryName={category} />
         ))}
