@@ -9,11 +9,21 @@ const ImageUploader = ({ images, setImages }) => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const newImages = files.map((file) => ({
+
+    const remainingSlots = 8 - images.length;
+
+    if (remainingSlots <= 0) {
+      alert("최대 8장의 사진만 업로드할 수 있습니다.");
+      return;
+    }
+
+    const newFiles = files.slice(0, remainingSlots);
+    const newImages = newFiles.map((file) => ({
       type: "new",
       file,
       url: URL.createObjectURL(file),
     }));
+
     setImages((prev) => [...prev, ...newImages]);
   };
 
