@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { AuthContext } from "../../../provider/AuthContext";
 import ReviewItem from "../../../components/review/ReviewItem";
 import SortSelector from "../../../components/review/SortSelector";
 import Pagination from "../../../components/Pagination/Pagination";
 import MyReview from "../../../components/review/MyReview";
 import InsertReviewPage from "./InsertReviewPage";
+import useApi from "../../../hooks/useApi";
+import axios from "axios"; // 여전히 delete 용도로 사용
 
 function ReviewPage({ restaurantNo }) {
   const navigate = useNavigate();
@@ -18,38 +19,22 @@ function ReviewPage({ restaurantNo }) {
   const itemsPerPage = 3;
   const myItemsPerPage = 1;
 
-  const [reviews, setReviews] = useState([]);
-  const [sortedReviews, setSortedReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [myReviewPage, setMyReviewPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [editReview, setEditReview] = useState(null);
+  const [sortedReviews, setSortedReviews] = useState([]);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    axios
-      .get(`/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
-      .then((res) => {
-        const reviewData = res.data?.body?.items?.reviews;
-        setReviews(Array.isArray(reviewData) ? reviewData : []);
-      })
-      .catch((err) => {
-        console.error("리뷰를 불러오는 중 오류가 발생했습니다.", err);
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [restaurantNo, currentPage]);
-
-  const safeReviews = Array.isArray(reviews) ? reviews : [];
-
-  const myReviews = safeReviews.filter(
-    (r) => user && r.memberNo === user.memberNo
+  const { body, error, loading, refetch } = useApi(
+    `/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`
   );
+
+  const reviews = useMemo(() => {
+    return Array.isArray(body?.items?.reviews) ? body.items.reviews : [];
+  }, [body]);
+
+  const myReviews = useMemo(() => {
+    return reviews.filter((r) => user && r.memberNo === user.memberNo);
+  }, [reviews, user]);
 
   const myPagedReviews = useMemo(() => {
     const start = (myReviewPage - 1) * myItemsPerPage;
@@ -61,10 +46,13 @@ function ReviewPage({ restaurantNo }) {
     return sortedReviews.slice(start, start + itemsPerPage);
   }, [sortedReviews, currentPage]);
 
-  const totalItems = safeReviews.length;
+  useEffect(() => {
+    setSortedReviews(reviews);
+  }, [reviews]);
+
   const pageInfo = {
     boardNoPerPage: itemsPerPage,
-    totalBoardNo: totalItems,
+    totalBoardNo: reviews.length,
     pageSize: 5,
   };
 
@@ -101,18 +89,9 @@ function ReviewPage({ restaurantNo }) {
       })
       .then(() => {
         alert("리뷰가 삭제되었습니다.");
-        const nextPage = currentPage > 1 ? currentPage - 1 : 1;
-
-        return axios
-          .get(
-            `/api/restaurants/${restaurantNo}/reviews?page=${nextPage}&_=${Date.now()}`
-          )
-          .then((res) => {
-            const reviewData = res.data?.body?.items?.reviews;
-            setReviews(Array.isArray(reviewData) ? reviewData : []);
-            setCurrentPage(nextPage);
-            setMyReviewPage(1);
-          });
+        setCurrentPage((prev) => (prev > 1 ? prev - 1 : 1));
+        setMyReviewPage(1);
+        refetch();
       })
       .catch((error) => {
         console.error("리뷰 삭제 오류:", error);
@@ -164,23 +143,15 @@ function ReviewPage({ restaurantNo }) {
         cancelEdit={cancelEdit}
         onSubmitSuccess={() => {
           setEditReview(null);
-          axios
-            .get(`/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`)
-            .then((res) => {
-              const reviewData = res.data?.body?.items?.reviews;
-              setReviews(Array.isArray(reviewData) ? reviewData : []);
-              setCurrentPage(1);
-              setMyReviewPage(1);
-            })
-            .catch((err) => {
-              console.error("리뷰 새로고침 실패:", err);
-            });
+          setCurrentPage(1);
+          setMyReviewPage(1);
+          refetch(); // ✅ 작성/수정 후 다시 호출
         }}
       />
 
       {loading ? (
         <div className="text-center text-gray-500">불러오는 중...</div>
-      ) : totalItems === 0 ? (
+      ) : reviews.length === 0 ? (
         <div className="text-center bg-gray-200 rounded text-gray-500 py-10">
           등록된 리뷰가 없습니다.
         </div>
@@ -210,7 +181,7 @@ function ReviewPage({ restaurantNo }) {
             />
           ))}
 
-          {totalItems > itemsPerPage && (
+          {reviews.length > itemsPerPage && (
             <Pagination
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
