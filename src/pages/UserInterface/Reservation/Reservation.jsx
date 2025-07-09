@@ -52,7 +52,6 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
         params: { restaurantNo: restaurantId },
       })
       .then((res) => {
-        console.log("result :", res.data);
         setMinPeople(res.data.body.items.minNum);
         setMaxPeople(res.data.body.items.maxNum);
       })
@@ -68,7 +67,6 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
         },
       })
       .then((res) => {
-        console.log("예약 가능한 시간들 :", res.data);
         if (res.data.header.code[0] !== "S") {
           setTimes({});
         }
@@ -111,7 +109,6 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
         reserveTime: selectedTime,
       })
       .then((res) => {
-        console.log(res);
         alert("예약이 등록되었습니다!");
         setOpenReservation(false);
       })

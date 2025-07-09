@@ -83,7 +83,6 @@ const Settings = ({
   };
 
   const handleTime = (time, dayIdx, type) => {
-    console.log("handleTime : ", handleTime);
     if (!check10Min(time)) return;
     updateTime(time, dayIdx, type);
   };
@@ -138,7 +137,6 @@ const Settings = ({
       restaurantNo: restaurantNo,
       weekDay: dayOfWeek[i],
     }));
-    console.log(update, settingInfo);
     refetch({
       data: {
         reservation: update,

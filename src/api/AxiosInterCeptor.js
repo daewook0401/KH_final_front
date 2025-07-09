@@ -18,7 +18,6 @@ axios.interceptors.response.use(
   
   response => response,
   async error => {
-    console.log(error.response);
     const originalReq = error.config;
     if (
       (error.response?.status === 401 || error.response?.status === 403) &&
@@ -43,7 +42,6 @@ axios.interceptors.response.use(
         sessionStorage.setItem("accessToken", newTokens.accessToken);
         sessionStorage.setItem("loginInfo", JSON.stringify(wrap.data.body.items.loginInfo));
         originalReq.headers.Authorization = `Bearer ${newTokens.accessToken}`;
-        console.log(wrap);
         return axios(originalReq);
       } catch (refreshError) {
         return Promise.reject(refreshError);

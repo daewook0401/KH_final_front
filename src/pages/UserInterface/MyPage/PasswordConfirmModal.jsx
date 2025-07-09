@@ -11,7 +11,6 @@ const PasswordConfirmModal = () => {
     confirmApi({
       data: {"password": password},
     }).then(res => {
-      console.log(res.header.code);
       if (res.header.code[0] === 'S'){
         sessionStorage.setItem("passwordConfirm", "true");
         navigate("/edit-profile");
@@ -22,7 +21,6 @@ const PasswordConfirmModal = () => {
     }).catch(err =>{
       alert("비밀번호 인증 실패");
       sessionStorage.setItem("passwordConfirm", "false");
-      console.log(err);
     });
   };
 

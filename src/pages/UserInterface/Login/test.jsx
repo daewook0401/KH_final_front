@@ -84,8 +84,6 @@ const test = () => {
     editedInfo({
       data: submissionData,
     }).then((res) => {
-      console.log("dktlqkf");
-      console.log(res);
       const { header } = res;
       if (header.code[0] === "S") {
         alert("소셜 회원가입 완료되었습니다. 메인 페이지로 이동합니다.");

@@ -200,7 +200,6 @@ const Operatinghours = ({
       restaurantNo: restaurantNo,
       weekDay: dayOfWeek[i],
     }));
-    console.log(update);
     refetch({ data: update })
       .then(() => {
         alert("운영시간이 등록되었습니다!");

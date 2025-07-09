@@ -23,7 +23,6 @@ const AdminReservation = () => {
   };
 
   const reservations = allReservationBd?.items || [];
-  console.log("allReservationBd:{}", allReservationBd);
   return (
     <section className="p-6">
       <h1 className="text-xl font-bold mb-4">예약 내역</h1>

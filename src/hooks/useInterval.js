@@ -15,7 +15,6 @@ const useInterval = (callback, delay) => {
         if (delay < 0 ) {
           return;
         }
-        console.log(delay);
         const timer = setInterval(() => savedCallback.current(), delay);
         return () => clearInterval(timer);
     }, [delay]);

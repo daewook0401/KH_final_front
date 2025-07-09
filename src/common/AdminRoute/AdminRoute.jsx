@@ -5,7 +5,6 @@ const AdminRoute = () => {
   const { auth } = useContext(AuthContext);
 
   if (auth.loginInfo.memberRole != "ROLE_ADMIN") {
-    console.log("관리자 권한이 없거나 인증되지 않았습니다.");
     return <Navigate to="/" replace />;
   }
 

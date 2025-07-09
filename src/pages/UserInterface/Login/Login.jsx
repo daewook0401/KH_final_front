@@ -22,7 +22,6 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const { memberId, memberPw } = formData;
-    if (!idRegex.test(memberId) || !pwRegex.test(memberPw)) return;
     try {
       const { header, body } = await loginApi({
         withCredentials: true,
@@ -36,7 +35,7 @@ const Login = () => {
         login(body.items.loginInfo, body.items.tokens, false, longTimeAuth);
         navigate("/");
       } else {
-        alert(`로그인 실패: ${header.code}`);
+        alert(`로그인 실패: ${header.message}`);
       }
     } catch {
       alert("로그인 중 오류가 발생했습니다.");
