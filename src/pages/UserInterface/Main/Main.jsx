@@ -1,160 +1,152 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiMapPin } from "react-icons/fi";
-// useNavigate 훅을 import 합니다.
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Header from "../../../common/Header/Header";
 import defaultImage from "/src/assets/rog.png";
 import useApi from "../../../hooks/useApi";
 
-// 설정: 화면에 표시할 카테고리 목록
 const DISPLAY_CATEGORIES = ["한식", "중식", "일식", "양식"];
-
-// 설정: 상단에 표시할 전체 카테고리 버튼 목록 나중에 지원 예정
 const ALL_CATEGORIES = [];
 
-/**
- * [UI 담당] 카테고리별 맛집 리스트 섹션을 화면에 그리는 컴포넌트
- */
+const fadeSlideUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};
+
 const CategorySection = ({ title, restaurants, loading, error }) => {
   const navigate = useNavigate();
-  const goToRestaurantDetail = (restaurantNo) =>
-    navigate(`/restaurant/${restaurantNo}`);
 
   if (loading)
-    return (
-      <div className="p-4">
-        <strong>{title}</strong> 맛집 목록을 불러오는 중...
-      </div>
-    );
+    return <p className="py-8 text-center text-gray-500">{title} 로딩 중…</p>;
   if (error)
-    return (
-      <div className="p-4 text-red-500">
-        <strong>{title}</strong> 목록 로딩 실패: {error}
-      </div>
-    );
+    return <p className="py-8 text-center text-red-400">{title} 실패: {error}</p>;
 
   return (
-    <section className="mb-12">
-      <h2 className="text-2xl font-bold mb-4">
-        <div className="flex justify-between items-center">
-          <span>{title}</span>
-        </div>
-        <div className="text-[25px] text-[#fc742f] text-sm">추천맛집</div>
+    <motion.section
+      className="mb-12"
+      variants={fadeSlideUp}
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="flex items-center justify-between mb-6">
+        <span className="text-2xl font-semibold text-gray-800">{title}</span>
+        <span className="text-sm font-medium text-[#ff7a3c]">추천 맛집</span>
       </h2>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-        {restaurants?.map(({ name, imageUrl, restaurant_no }) => (
-          <article
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {restaurants.map(({ restaurant_no, name, imageUrl }) => (
+          <motion.div
             key={restaurant_no}
-            onClick={() => goToRestaurantDetail(restaurant_no)}
-            className="border border-gray-200 rounded-lg overflow-hidden text-center bg-white transition-shadow duration-200 ease-in-out hover:shadow-lg cursor-pointer"
+            onClick={() => navigate(`/restaurant/${restaurant_no}`)}
+            className="group relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-300 cursor-pointer bg-white"
+            whileHover={{ scale: 1.03 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
             <img
               src={imageUrl}
               alt={name}
               onError={(e) => (e.target.src = defaultImage)}
-              className="w-full aspect-[4/3] object-cover"
+              className="w-full h-48 object-cover"
             />
-            <p className="py-3 px-2 font-medium">{name}</p>
-          </article>
+            <div className="absolute inset-0 bg-white/30 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+              <span className="px-4 py-2 bg-[#ff7a3c] text-white rounded-full font-medium">
+                자세히 보기
+              </span>
+            </div>
+            <p className="mt-3 px-4 pb-4 text-lg font-medium text-gray-800">{name}</p>
+          </motion.div>
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 };
 
-/**
- * [데이터 호출 담당] 특정 카테고리의 데이터를 useApi로 호출하고, CategorySection을 렌더링하는 컴포넌트
- */
 const CategoryRestaurants = ({ categoryName }) => {
-  // 2. useApi 훅을 사용하여 API 호출 및 상태 관리
   const { body, loading, error } = useApi(
     `/api/restaurants/category/${categoryName}`
   );
-  React.useEffect(() => {
-    // body가 null이 아닐 때만 (즉, 응답이 왔을 때만) 로그를 찍습니다.
-    if (body) {
-      console.log(`[${categoryName}] 카테고리 API 실제 응답 데이터:`, body);
-    }
+  useEffect(() => {
+    if (body) console.log(`[${categoryName}] 응답:`, body);
   }, [body, categoryName]);
-  // 3. 백엔드 데이터 키(restaurantNo)를 프론트엔드 키(restaurant_no)로 변경
-
-  // 4. 상태와 데이터를 UI 담당 컴포넌트로 전달
   return (
     <CategorySection
       title={categoryName}
-      restaurants={body} // mappedRestaurants 대신 body를 직접 전달
+      restaurants={body || []}
       loading={loading}
       error={error}
     />
   );
 };
 
-/**
- * 메인 페이지 전체를 구성하는 최상위 컴포넌트
- */
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-  const navigate = useNavigate(); // 🎨 1. useNavigate 훅을 호출합니다.
+  const navigate = useNavigate();
 
-  /**
-   * 🎨 2. 검색 폼 제출 시 SearchResultsPage로 이동시키는 함수
-   */
-  const handleSubmit = (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
-    // 검색어가 비어있지 않을 때만 이동합니다.
-    if (keyword.trim()) {
-      navigate(`/search-results?query=${keyword}`);
-    } else {
-      alert("검색어를 입력해주세요.");
-    }
+    if (keyword.trim()) navigate(`/search-results?query=${keyword}`);
+    else alert("검색어를 입력해주세요.");
   };
 
   return (
     <>
-      <div className="max-w-[960px] mx-auto py-8 px-4">
-        {/* 상단 검색 섹션 */}
-        {/* bg-gradient-to-br from-[#ffa868] to-[#ffaa6b]이 너무 강해 이미지와 유사한 색으로 변경 */}
-        <section className="bg-[#fec89a] text-white text-center py-10 px-5 rounded-xl">
-          <h1 className="mb-6 text-2xl md:text-[1.6rem] font-bold leading-tight text-gray-800">
+      <div className="px-4 py-10 max-w-6xl mx-auto">
+        {/* 검색 섹션 */}
+        <motion.section
+          className="relative rounded-2xl bg-gradient-to-br from-[#e65c00] to-[#ff9a3c] p-8 mb-16 overflow-hidden"
+          variants={fadeSlideUp}
+          initial="initial"
+          animate="animate"
+          transition={{ duration: 0.8 }}
+        >
+          <div className="absolute -top-8 -left-8 w-36 h-36 bg-white/20 rounded-full animate-pulse" />
+          <div className="absolute -bottom-8 -right-8 w-52 h-52 bg-white/10 rounded-full" />
+
+          <h1 className="relative text-3xl md:text-4xl font-bold text-white mb-6">
             한눈에 펼쳐보는 맛집 추천
           </h1>
           <form
-            onSubmit={handleSubmit}
-            className="mx-auto mb-6 flex w-full max-w-sm overflow-hidden rounded-full bg-white shadow"
+            onSubmit={onSubmit}
+            className="relative flex max-w-md mx-auto bg-white rounded-full shadow-lg overflow-hidden"
           >
-            <span className="flex items-center pl-4 pr-2 text-gray-400">
-              <FiMapPin size={18} />
+            <span className="flex items-center pl-4 text-gray-400">
+              <FiMapPin size={20} />
             </span>
             <input
+              type="text"
+              className="flex-1 py-3 px-4 text-gray-700 placeholder-gray-400 focus:outline-none"
               placeholder="검색어 입력"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="flex-1 w-full bg-transparent border-none py-3 text-[0.95rem] text-gray-800 placeholder:text-gray-400 focus:outline-none"
             />
-            <button
+            <motion.button
               type="submit"
-              className="cursor-pointer border-none bg-[#ff5a3c] px-6 font-semibold text-white transition-colors hover:bg-red-600"
+              className="px-6 bg-[#ff7a3c] hover:bg-[#e65c00] text-white font-semibold rounded-full transition-colors"
+              whileTap={{ scale: 0.95 }}
             >
               검색
-            </button>
+            </motion.button>
           </form>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {ALL_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                className="cursor-pointer rounded-full bg-white py-1.5 px-3.5 text-sm font-medium text-gray-700 transition-colors hover:bg-orange-50"
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </section>
+          {ALL_CATEGORIES.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center mt-4">
+              {ALL_CATEGORIES.map((cat) => (
+                <motion.button
+                  key={cat}
+                  className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm hover:bg-white/80 transition"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  {cat}
+                </motion.button>
+              ))}
+            </div>
+          )}
+        </motion.section>
 
-        <br />
-
-        {/* 카테고리별 맛집 목록 */}
-        {DISPLAY_CATEGORIES.map((category) => (
-          <CategoryRestaurants key={category} categoryName={category} />
+        {/* 카테고리별 맛집 */}
+        {DISPLAY_CATEGORIES.map((cat) => (
+          <CategoryRestaurants key={cat} categoryName={cat} />
         ))}
       </div>
     </>
