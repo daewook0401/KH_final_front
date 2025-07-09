@@ -7,14 +7,12 @@ import Pagination from "../../../components/Pagination/Pagination";
 import MyReview from "../../../components/review/MyReview";
 import InsertReviewPage from "./InsertReviewPage";
 import useApi from "../../../hooks/useApi";
-import axios from "axios"; // 여전히 delete 용도로 사용
 
 function ReviewPage({ restaurantNo }) {
   const navigate = useNavigate();
   const { auth } = useContext(AuthContext);
   const user = auth.loginInfo;
-  const roles = user?.roles || [];
-  const isAdmin = roles.includes("ROLE_ADMIN");
+  const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
   const itemsPerPage = 3;
   const myItemsPerPage = 1;
@@ -25,7 +23,13 @@ function ReviewPage({ restaurantNo }) {
   const [sortedReviews, setSortedReviews] = useState([]);
 
   const { body, error, loading, refetch } = useApi(
-    `/api/restaurants/${restaurantNo}/reviews?page=${currentPage}`
+    `/api/restaurants/${restaurantNo}/reviews`
+  );
+
+  const { refetch: deleteReview } = useApi(
+    `/api/restaurants/${restaurantNo}/reviews`,
+    { method: "delete" },
+    false
   );
 
   const reviews = useMemo(() => {
@@ -50,10 +54,9 @@ function ReviewPage({ restaurantNo }) {
     setSortedReviews(reviews);
   }, [reviews]);
 
-  const pageInfo = {
-    boardNoPerPage: itemsPerPage,
-    totalBoardNo: reviews.length,
-    pageSize: 5,
+  const scrollToInsertReview = () => {
+    const el = document.getElementById("insert-review");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleEditReview = (review) => {
@@ -63,8 +66,7 @@ function ReviewPage({ restaurantNo }) {
       return;
     }
     setEditReview(review);
-    const el = document.getElementById("insert-review");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    scrollToInsertReview();
   };
 
   const cancelEdit = () => {
@@ -81,20 +83,16 @@ function ReviewPage({ restaurantNo }) {
     const confirmDelete = window.confirm("정말 삭제하시겠습니까?");
     if (!confirmDelete) return;
 
-    axios
-      .delete(`/api/restaurants/${restaurantNo}/reviews/${reviewNo}`, {
-        headers: {
-          Authorization: `Bearer ${auth.tokens.accessToken}`,
-        },
-      })
+    deleteReview({
+      url: `/api/restaurants/${restaurantNo}/reviews/${reviewNo}`,
+    })
       .then(() => {
         alert("리뷰가 삭제되었습니다.");
         setCurrentPage((prev) => (prev > 1 ? prev - 1 : 1));
         setMyReviewPage(1);
         refetch();
       })
-      .catch((error) => {
-        console.error("리뷰 삭제 오류:", error);
+      .catch(() => {
         alert("리뷰 삭제 실패");
       });
   };
@@ -105,10 +103,7 @@ function ReviewPage({ restaurantNo }) {
       navigate("/login");
       return;
     }
-
-    const el = document.getElementById("insert-review");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-
+    scrollToInsertReview();
     setEditReview(null);
   };
 
@@ -145,7 +140,7 @@ function ReviewPage({ restaurantNo }) {
           setEditReview(null);
           setCurrentPage(1);
           setMyReviewPage(1);
-          refetch(); // ✅ 작성/수정 후 다시 호출
+          refetch();
         }}
       />
 
@@ -185,7 +180,11 @@ function ReviewPage({ restaurantNo }) {
             <Pagination
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
-              pageInfo={pageInfo}
+              pageInfo={{
+                boardNoPerPage: itemsPerPage,
+                totalBoardNo: reviews.length,
+                pageSize: 5,
+              }}
             />
           )}
         </>

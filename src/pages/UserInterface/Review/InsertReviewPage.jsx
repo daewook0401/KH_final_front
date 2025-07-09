@@ -17,7 +17,6 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
   {
     restaurantNo: propRestaurantNo,
     onSubmitSuccess,
-    focusReviewTextarea,
     editReview = null,
     cancelEdit,
   },
@@ -36,7 +35,6 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // useApi 훅 설정
   const {
     refetch: submitReviewApi,
     loading: submitLoading,
@@ -47,25 +45,15 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     }`,
     {
       method: editReview ? "put" : "post",
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${auth.tokens.accessToken}`,
-      },
-      withCredentials: true,
     },
-    false // 즉시 실행하지 않음
+    false
   );
 
   useEffect(() => {
     if (editReview) {
       setScore(editReview.reviewScore);
       setContent(editReview.reviewContent ?? "");
-      setImages(
-        editReview.photos?.map((photo) => ({
-          type: "existing",
-          url: photo.reviewPhotoUrl,
-        })) || []
-      );
+      setImages([]);
       setBillImage(editReview.billPhotoUrl || null);
     } else {
       setScore(0);
@@ -75,23 +63,13 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     }
   }, [editReview]);
 
-  useEffect(() => {
-    if (focusReviewTextarea && reviewTextareaRef.current) {
-      reviewTextareaRef.current.focus();
-      window.scrollTo({
-        top: reviewTextareaRef.current.offsetTop - 100,
-        behavior: "smooth",
-      });
-    }
-  }, [focusReviewTextarea]);
-
   const requireLogin = (callback) => {
     if (!auth.isAuthenticated) {
       alert("로그인이 필요합니다.");
       navigate("/login");
-    } else {
-      callback();
+      return;
     }
+    callback();
   };
 
   const handleVerificationSuccess = (imageFileOrUrl) => {
@@ -153,13 +131,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    requireLogin(() => {
-      if (!editReview && !billImage) {
-        alert("영수증 인증이 필요합니다.");
-      } else {
-        handleFinalSubmit();
-      }
-    });
+    requireLogin(handleFinalSubmit);
   };
 
   const handleCancelEdit = () => {
@@ -167,16 +139,11 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     setContent("");
     setImages([]);
     setBillImage(null);
-    cancelEdit && cancelEdit();
+    cancelEdit?.();
   };
 
   return (
-    <div
-      ref={ref}
-      tabIndex={-1}
-      className="flex overflow-x-hidden bg-gray-100"
-      style={{ outline: "none" }}
-    >
+    <div ref={ref} tabIndex={-1} className="flex overflow-x-hidden bg-gray-100">
       <div className="max-w-[850px] w-full p-6 space-y-6 bg-gray-200 rounded-lg">
         <h1 className="text-2xl font-bold">
           {editReview ? "리뷰 수정" : "리뷰 작성"}
@@ -193,10 +160,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
           <div className="flex justify-end items-center space-x-3 mt-4">
             {billImage && !editReview && (
-              <span
-                className="text-green-600 text-2xl font-bold select-none"
-                title="영수증 인증 완료"
-              >
+              <span className="text-green-600 text-2xl font-bold select-none">
                 ✓
               </span>
             )}
