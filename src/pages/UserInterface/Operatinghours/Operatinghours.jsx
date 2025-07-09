@@ -24,7 +24,7 @@ import {
   Span,
   H2,
   ModalFooter,
-} from "./OperatingHoursStyles";
+} from "./OperatinghoursStyles";
 
 const Operatinghours = ({
   setOpenOperatingTime,
