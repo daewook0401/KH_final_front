@@ -40,9 +40,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     loading: submitLoading,
     error: submitError,
   } = useApi(
-    `/api/restaurants/${restaurantNo}/reviews${
-      editReview ? `/${editReview.reviewNo}` : ""
-    }`,
+    "/api/reviews", // 수정: URL 고정
     {
       method: editReview ? "put" : "post",
     },
@@ -92,7 +90,10 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
     const formData = new FormData();
 
+    // 수정: reviewNo 포함
     const reviewDTO = {
+      reviewNo: editReview?.reviewNo || null,
+      restaurantNo,
       reviewScore: score,
       reviewContent: content,
       billPass: "Y",
