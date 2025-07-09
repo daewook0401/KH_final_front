@@ -77,7 +77,7 @@ const Restaurant = () => {
     "/api/settings/byRestaurantNo",
     { method: "get", params: { restaurantNo: restaurantId } }
   );
-
+  // 다음에 구현 예정
   // --- 기존 mockMenuItems 더미 데이터 삭제 ---
   // const mockMenuItems = [ ... ]; // 이 부분을 완전히 삭제합니다.
 

@@ -5,7 +5,7 @@ import React, {
   useContext,
   forwardRef,
 } from "react";
-import axios from "axios";
+import useApi from "../../../hooks/useApi";
 import InputScore from "../../../components/review/InputScore";
 import ImageUploader from "../../../components/review/ImageUploader";
 import InputReviewContent from "../../../components/review/InputReviewContent";
@@ -17,7 +17,6 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
   {
     restaurantNo: propRestaurantNo,
     onSubmitSuccess,
-    focusReviewTextarea,
     editReview = null,
     cancelEdit,
   },
@@ -30,23 +29,31 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
   const [images, setImages] = useState([]);
   const [billImage, setBillImage] = useState(null);
   const [showBillModal, setShowBillModal] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const reviewTextareaRef = useRef(null);
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const {
+    refetch: submitReviewApi,
+    loading: submitLoading,
+    error: submitError,
+  } = useApi(
+    `/api/restaurants/${restaurantNo}/reviews${
+      editReview ? `/${editReview.reviewNo}` : ""
+    }`,
+    {
+      method: editReview ? "put" : "post",
+    },
+    false
+  );
+
   useEffect(() => {
     if (editReview) {
       setScore(editReview.reviewScore);
       setContent(editReview.reviewContent ?? "");
-      setImages(
-        editReview.photos?.map((photo) => ({
-          type: "existing",
-          url: photo.reviewPhotoUrl,
-        })) || []
-      );
+      setImages([]);
       setBillImage(editReview.billPhotoUrl || null);
     } else {
       setScore(0);
@@ -56,23 +63,13 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     }
   }, [editReview]);
 
-  useEffect(() => {
-    if (focusReviewTextarea && reviewTextareaRef.current) {
-      reviewTextareaRef.current.focus();
-      window.scrollTo({
-        top: reviewTextareaRef.current.offsetTop - 100,
-        behavior: "smooth",
-      });
-    }
-  }, [focusReviewTextarea]);
-
   const requireLogin = (callback) => {
     if (!auth.isAuthenticated) {
       alert("로그인이 필요합니다.");
       navigate("/login");
-    } else {
-      callback();
+      return;
     }
+    callback();
   };
 
   const handleVerificationSuccess = (imageFileOrUrl) => {
@@ -91,7 +88,6 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
       return;
     }
 
-    setLoading(true);
     setError(null);
 
     const formData = new FormData();
@@ -101,6 +97,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
       reviewContent: content,
       billPass: "Y",
     };
+
     formData.append(
       "review",
       new Blob([JSON.stringify(reviewDTO)], { type: "application/json" })
@@ -116,21 +113,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
       formData.append("billPhoto", billImage);
     }
 
-    const baseUrl = `/api/restaurants/${restaurantNo}/reviews`;
-    const reviewUrl = editReview
-      ? `${baseUrl}/${editReview.reviewNo}`
-      : baseUrl;
-
-    axios({
-      method: editReview ? "put" : "post",
-      url: reviewUrl,
-      data: formData,
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${auth.tokens.accessToken}`,
-      },
-      withCredentials: true,
-    })
+    submitReviewApi({ data: formData })
       .then(() => {
         alert(editReview ? "리뷰가 수정되었습니다!" : "리뷰가 등록되었습니다!");
         setScore(0);
@@ -141,23 +124,14 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
         onSubmitSuccess?.();
       })
       .catch((err) => {
-        console.error("리뷰 제출 오류:", err.response?.data || err.message);
+        console.error("리뷰 제출 오류:", err);
         setError("리뷰 작성 중 문제가 발생했습니다.");
-      })
-      .finally(() => {
-        setLoading(false);
       });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    requireLogin(() => {
-      if (!editReview && !billImage) {
-        alert("영수증 인증이 필요합니다.");
-      } else {
-        handleFinalSubmit();
-      }
-    });
+    requireLogin(handleFinalSubmit);
   };
 
   const handleCancelEdit = () => {
@@ -165,16 +139,11 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     setContent("");
     setImages([]);
     setBillImage(null);
-    cancelEdit && cancelEdit();
+    cancelEdit?.();
   };
 
   return (
-    <div
-      ref={ref}
-      tabIndex={-1}
-      className="flex overflow-x-hidden bg-gray-100"
-      style={{ outline: "none" }}
-    >
+    <div ref={ref} tabIndex={-1} className="flex overflow-x-hidden bg-gray-100">
       <div className="max-w-[850px] w-full p-6 space-y-6 bg-gray-200 rounded-lg">
         <h1 className="text-2xl font-bold">
           {editReview ? "리뷰 수정" : "리뷰 작성"}
@@ -191,10 +160,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
           <div className="flex justify-end items-center space-x-3 mt-4">
             {billImage && !editReview && (
-              <span
-                className="text-green-600 text-2xl font-bold select-none"
-                title="영수증 인증 완료"
-              >
+              <span className="text-green-600 text-2xl font-bold select-none">
                 ✓
               </span>
             )}
@@ -221,14 +187,19 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={submitLoading}
               className="w-32 bg-orange-500 text-white py-2 rounded-2xl hover:bg-orange-600 disabled:opacity-50"
             >
-              {loading ? "처리 중..." : editReview ? "수정 완료" : "리뷰 등록"}
+              {submitLoading
+                ? "처리 중..."
+                : editReview
+                ? "수정 완료"
+                : "리뷰 등록"}
             </button>
           </div>
 
           {error && <p className="text-red-500">{error}</p>}
+          {submitError && <p className="text-red-500">{submitError.message}</p>}
         </form>
       </div>
 
