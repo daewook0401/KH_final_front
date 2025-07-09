@@ -14,7 +14,7 @@ const FindingId = () => {
   const [result, setResult] = useState(null);
   const { refetch: apiFindId } = useApi(
     "/api/member/find-id",
-    { method: "post", data: { email } },
+    { method: "post", data: { memberEmail:email } },
     false
   );
 
