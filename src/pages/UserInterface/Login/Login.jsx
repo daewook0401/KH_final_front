@@ -29,6 +29,10 @@ const Login = () => {
         data: { ...formData, authLogin: longTimeAuth ? "Y" : "N" },
       });
       if (header.code[0] === "S") {
+        if (body.items.loginInfo.isActive === "N") {
+          alert("비활성화된 계정이거나 정지된 계정입니다.");
+          return;
+        }
         login(body.items.loginInfo, body.items.tokens, false, longTimeAuth);
         navigate("/");
       } else {
