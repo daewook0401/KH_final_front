@@ -16,7 +16,7 @@ const FindingPw = () => {
   const [email, setEmail]     = useState("");
   const [message, setMessage] = useState(null);
   const { refetch: apiReset } = useApi(
-    "/api/mail/pw-verify",
+    "/api/email/pw-verify",
     { method: "post", data: { memberId:memberId, memberEmail:email } },
     false
   );
