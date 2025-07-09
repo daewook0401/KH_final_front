@@ -66,10 +66,10 @@ const AdminRestaurantPage = () => {
   useEffect(() => {
     const params = new URLSearchParams();
     if (statusFilter) {
-      params.append("status", statusFilter);
+      params.append("status2", statusFilter);
     }
     if (appliedKeyword) {
-      params.append("keyword", appliedKeyword);
+      params.append("keyword2", appliedKeyword);
     }
     const queryString = params.toString();
     setApiUrl(`/api/admin/restaurants?${queryString}`);
