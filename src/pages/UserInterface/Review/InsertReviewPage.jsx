@@ -40,7 +40,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     loading: submitLoading,
     error: submitError,
   } = useApi(
-    "/api/reviews", // 수정: URL 고정
+    "/api/reviews",
     {
       method: editReview ? "put" : "post",
     },
@@ -51,7 +51,12 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
     if (editReview) {
       setScore(editReview.reviewScore);
       setContent(editReview.reviewContent ?? "");
-      setImages([]);
+      setImages(
+        editReview.photos?.map((photo) => ({
+          type: "existing",
+          url: photo.reviewPhotoUrl,
+        })) || []
+      );
       setBillImage(editReview.billPhotoUrl || null);
     } else {
       setScore(0);
@@ -90,13 +95,17 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
     const formData = new FormData();
 
-    // 수정: reviewNo 포함
+    const existingPhotoUrls = images
+      .filter((image) => image.type === "existing")
+      .map((image) => image.url);
+
     const reviewDTO = {
       reviewNo: editReview?.reviewNo || null,
       restaurantNo,
       reviewScore: score,
       reviewContent: content,
       billPass: "Y",
+      existingPhotoUrls,
     };
 
     formData.append(
@@ -106,7 +115,12 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
 
     images.forEach((image) => {
       if (image.type === "new") {
-        formData.append("photos", image.file);
+        const original = image.file;
+        const sanitizedFileName = original.name.trim().replace(/\s+/g, "_");
+        const sanitizedFile = new File([original], sanitizedFileName, {
+          type: original.type,
+        });
+        formData.append("photos", sanitizedFile);
       }
     });
 
@@ -124,8 +138,7 @@ const InsertReviewPage = forwardRef(function InsertReviewPage(
         cancelEdit?.();
         onSubmitSuccess?.();
       })
-      .catch((err) => {
-        console.error("리뷰 제출 오류:", err);
+      .catch(() => {
         setError("리뷰 작성 중 문제가 발생했습니다.");
       });
   };
