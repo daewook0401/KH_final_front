@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import logoImage from "/src/assets/rog.png";
 import { AuthContext } from "../../provider/AuthContext";
@@ -6,6 +6,7 @@ import { AuthContext } from "../../provider/AuthContext";
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useContext(AuthContext);
+
   const handleLogoClick = () => navigate("/");
   const handleAuthClick = () =>
     auth.isAuthenticated
@@ -15,52 +16,51 @@ const Header = () => {
       : navigate("/login");
   const handleLogoutClick = () =>
     auth.isAuthenticated ? logout() : navigate("/sign-up");
+  const handleRegisterClick = () => navigate("/restaurant-insert");
 
-  // '가게 등록' 버튼 클릭 시 동작하는 핸들러 추가
-  const handleRegisterClick = () => {
-    navigate("/restaurant-insert");
-  };
-
-  // 공통으로 사용할 버튼 스타일
-  const buttonStyle =
-    "mr-[30px] cursor-pointer text-white font-semibold hover:text-gray-200 transition-colors";
+  const linkBase =
+    "relative px-4 py-2 font-medium text-sm text-white transition-colors cursor-pointer";
+  const underline =
+    "after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-full after:bg-[#ff7a3c] after:scale-x-0 after:origin-left after:transition-transform";
 
   return (
-    <header className="bg-[rgba(255,89,0,0.8)] h-20">
-      {/* 중앙 고정 컨테이너 */}
-      <div
-        className="h-full mx-auto flex items-center justify-between
-                      w-full max-w-6xl min-w-[320px] px-5"
-      >
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-[#e65c00]/90 to-[#ff9a3c]/90 backdrop-blur-sm shadow-lg">
+      <div className="max-w-6xl mx-auto flex items-center justify-between h-20 px-6">
         {/* 로고 */}
-        <div className="flex items-center">
-          <img
-            src={logoImage}
-            alt="로고"
-            className="h-16 w-16 cursor-pointer"
-            onClick={handleLogoClick}
-          />
-        </div>
+        <img
+          src={logoImage}
+          alt="NomNom 로고"
+          className="h-12 w-12 cursor-pointer rounded-full transition-transform duration-300 hover:rotate-12 hover:scale-110"
+          onClick={handleLogoClick}
+        />
 
-        {/* 버튼 영역 */}
-        <div className="flex items-center space-x-8 text-white font-semibold">
-          <div
-            className="cursor-pointer hover:text-gray-200 transition-colors"
+        {/* 네비게이션 버튼 */}
+        <nav className="flex items-center space-x-6">
+          {auth.isAuthenticated && (
+            <button
+              onClick={handleRegisterClick}
+              className={`${linkBase} ${underline} hover:text-[#ffd08c] hover:after:scale-x-100`}
+            >
+              가게 등록
+            </button>
+          )}
+          <button
             onClick={handleAuthClick}
+            className={`${linkBase} ${underline} hover:text-[#ffd08c] hover:after:scale-x-100`}
           >
             {auth.isAuthenticated
               ? auth.loginInfo?.memberRole === "ROLE_ADMIN"
                 ? "관리자 페이지"
                 : "마이 페이지"
               : "로그인"}
-          </div>
-          <div
-            className="cursor-pointer hover:text-gray-200 transition-colors"
+          </button>
+          <button
             onClick={handleLogoutClick}
+            className={`${linkBase} ${underline} hover:text-[#ffd08c] hover:after:scale-x-100`}
           >
             {auth.isAuthenticated ? "로그아웃" : "회원가입"}
-          </div>
-        </div>
+          </button>
+        </nav>
       </div>
     </header>
   );

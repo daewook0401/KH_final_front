@@ -33,6 +33,9 @@ import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
 import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
 import AdminRestaurantPage from "./pages/AdminInterface/AdminRestaurant/AdminRestaurantPage";
 import EditProfilePage from "./pages/UserInterface/MyPage/EditProfilePage";
+import SearchResultsPage from "./pages/UserInterface/Restaurant/SearchResultsPage";
+import FindingId from "./pages/UserInterface/Login/FindingId";
+import FindingPw from "./pages/UserInterface/Login/FindingPw";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -49,6 +52,7 @@ function App() {
               path="/reviews/:restaurant_no"
               element={<InsertReviewPage />}
             />
+            <Route path="/search-results" element={<SearchResultsPage />} />
             <Route path="/operatinghours" element={<Operatinghours />} />
             <Route path="/reservation" element={<Reservation />} />
             <Route path="/settings" element={<Settings />} />
@@ -71,7 +75,10 @@ function App() {
               <Route path="restaurant" element={<MyRestaurant />} />
               {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
             </Route>
-            <Route path="/password-confirm" element={<PasswordConfirmModal />} />
+            <Route
+              path="/password-confirm"
+              element={<PasswordConfirmModal />}
+            />
             <Route path="/edit-profile" element={<EditProfilePage />} />
           </Route>
 
@@ -86,6 +93,9 @@ function App() {
           </Route>
 
           <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
+          <Route path="/finding-id" element={<FindingId />} />
+          <Route path="/finding-password" element={<FindingPw />} />
+
         </Routes>
       </AuthProvider>
     </>

@@ -39,6 +39,12 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
   const [times, setTimes] = useState({});
   const { auth } = useContext(AuthContext);
   const accessToken = auth?.tokens?.accessToken;
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // 월은 0부터 시작하므로 +1
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   useEffect(() => {
     axios
@@ -58,11 +64,14 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
       .get("/api/reservation", {
         params: {
           restaurantNo: restaurantId,
-          reserveDay: selectedDate.toISOString().slice(0, 10),
+          reserveDay: formatDate(selectedDate),
         },
       })
       .then((res) => {
         console.log("예약 가능한 시간들 :", res.data);
+        if (res.data.header.code[0] !== "S") {
+          setTimes({});
+        }
         setTimes(res.data.body.items.resultMap);
       })
       .catch(console.error);
@@ -72,7 +81,7 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
     axios
       .post("/api/reservation", {
         restaurantNo: restaurantId,
-        reserveDay: selectedDate.toISOString().slice(0, 10),
+        reserveDay: formatDate(selectedDate),
         numberOfGuests: selectedCount,
         reserveTime: selectedTime,
       })
