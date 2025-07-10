@@ -10,13 +10,14 @@ const ChattingBtn = () => {
   const [messages, setMessages] = useState([]);
   const [roomNo, setRoomNo] = useState("");
   const [content, setContent] = useState("");
-
+  const API = window.ENV?.API_URL || "http://localhost:8080";
+  const socket = window.ENV?.SOCKET_URL || "ws://localhost:8080";
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (chatOpen) {
       axios
-        .get(`/api/chatting/roomNo`)
+        .get(`${API}/api/chatting/roomNo`)
         .then((response) => {
           setRoomNo(response.data.body.items.roomNo);
         })
@@ -27,7 +28,7 @@ const ChattingBtn = () => {
   useEffect(() => {
     if (roomNo) {
       axios
-        .get(`/api/chatting/${roomNo}`)
+        .get(`${API}/api/chatting/${roomNo}`)
         .then((res) => {
           setMessages(res.data.body.items);
         })
@@ -36,7 +37,7 @@ const ChattingBtn = () => {
   }, [roomNo]);
 
   const socketUrl = roomNo
-    ? `ws://localhost:8080/ws/chat/${roomNo}?token=${accessToken}`
+    ? `${socket}/ws/chat/${roomNo}?token=${accessToken}`
     : null;
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
