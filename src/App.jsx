@@ -74,12 +74,13 @@ function App() {
               <Route path="reviews" element={<ReviewList />} />
               <Route path="favorites" element={<FavoriteList />} />
               <Route path="restaurant" element={<MyRestaurant />} />
-              <Route path="delete" element={<MemberDelete />} />
+              
             </Route>
             <Route
               path="/password-confirm"
               element={<PasswordConfirmModal />}
             />
+            <Route path="/user-delete" element={<MemberDelete />} />
             <Route path="/edit-profile" element={<EditProfilePage />} />
           </Route>
 

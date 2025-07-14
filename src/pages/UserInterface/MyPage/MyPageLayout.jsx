@@ -8,7 +8,7 @@ const baseNav = [
   { label: "예약 내역", path: "/mypage/reservations" },
   { label: "리뷰 내역", path: "/mypage/reviews" },
   { label: "즐겨찾기", path: "/mypage/favorites" },
-  { label: "회원 탈퇴", path: "/mypage/delete" },
+  { label: "회원 탈퇴", path: "/user-delete" },
 ];
 
 const containerAnim = {
@@ -39,7 +39,7 @@ const MyPageLayout = () => {
   }, []);
 
   const handleNavClick = (path) => () => {
-    if (path === "/mypage/delete") {
+    if (path === "/user-delete") {
       if (window.confirm("정말 탈퇴하시겠습니까?")) {
         navigate(path);
       }
