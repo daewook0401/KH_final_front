@@ -36,6 +36,7 @@ import EditProfilePage from "./pages/UserInterface/MyPage/EditProfilePage";
 import SearchResultsPage from "./pages/UserInterface/Restaurant/SearchResultsPage";
 import FindingId from "./pages/UserInterface/Login/FindingId";
 import FindingPw from "./pages/UserInterface/Login/FindingPw";
+import MemberDelete from "./pages/UserInterface/MyPage/MemberDelete";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -73,7 +74,7 @@ function App() {
               <Route path="reviews" element={<ReviewList />} />
               <Route path="favorites" element={<FavoriteList />} />
               <Route path="restaurant" element={<MyRestaurant />} />
-              {/* <Route path="delete" element={<DeleteAccountPage />} /> */}
+              <Route path="delete" element={<MemberDelete />} />
             </Route>
             <Route
               path="/password-confirm"

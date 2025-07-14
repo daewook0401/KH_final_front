@@ -18,8 +18,6 @@ const useApi = (url, options = {}, immediate = true) => {
     const config = {
       url,
       method: options.method || "get",
-      headers: options.headers || {},
-      withCredentials: options.withCredentials || false,
       ...options,
       ...overrideOptions,
     };

@@ -38,9 +38,23 @@ const MyPageLayout = () => {
     }
   }, []);
 
-  const handleNavClick = (path) => () => navigate(path);
-  const handleEditClick = () => navigate("/password-confirm");
-
+  const handleNavClick = (path) => () => {
+    if (path === "/mypage/delete") {
+      if (window.confirm("정말 탈퇴하시겠습니까?")) {
+        navigate(path);
+      }
+    } else {
+      navigate(path);
+    }
+  };
+  const handleEditClick = () => {
+    if (sessionStorage.getItem("socialLoginState") === "true"){
+      sessionStorage.setItem("passwordConfirm", "true");
+      navigate("/edit-profile");
+    } else {
+      navigate("/password-confirm");
+    }
+  }
   return (
     <motion.div
       className="min-h-screen bg-gray-50 flex justify-center"
