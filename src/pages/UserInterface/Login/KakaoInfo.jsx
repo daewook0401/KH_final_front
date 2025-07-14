@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import Header from "../../../common/Header/Header";
+import { useContext, useEffect, useState } from "react";
 import { nameRegex, nickRegex } from "../../../components/Regex";
 import useApi from "../../../hooks/useApi";
 import { useNavigate } from "react-router-dom";
+import AuthContext from "../../../provider/AuthContext";
 
 const KakaoInfo = () => {
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     memberEmail: "",
     memberName: "",
@@ -15,7 +16,11 @@ const KakaoInfo = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [isVerifyNickName, setIsVerifyNickName] = useState(false);
   const navigate = useNavigate();
-
+  const {
+    header,
+    body:refreshBody,
+    refetch: refreshApi
+  } = useApi("/api/auth/refresh", { method: "post" });
   const {
     header: nickNameHeader,
     refetch: checkNickName,
@@ -95,6 +100,7 @@ const KakaoInfo = () => {
     editedInfo({ data: submissionData })
       .then(({ header }) => {
         if (header.code[0] === "S") {
+          refreshApi();
           alert("소셜 회원가입 완료되었습니다. 메인 페이지로 이동합니다.");
           navigate("/");
         } else {
@@ -103,10 +109,17 @@ const KakaoInfo = () => {
       })
       .catch((err) => alert(err));
   };
-
+  if (refreshBody !== null && refreshBody.items.loginInfo.isModify === "Y"){
+    login(
+      res.data.body.items.loginInfo,
+      res.data.body.items.tokens,
+      true,
+      false
+    );
+    navigate("/");
+  }
   return (
     <>
-      <Header />
       <div className="flex items-center justify-center min-h-screen bg-white py-12 px-4">
         <div className="w-full max-w-md p-8 space-y-6 bg-white border border-gray-200 rounded-xl shadow-lg">
           <h1 className="text-2xl font-bold text-center text-red-500">
