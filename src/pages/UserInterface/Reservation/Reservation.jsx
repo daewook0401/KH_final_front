@@ -75,31 +75,6 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
       .catch(console.error);
   }, [restaurantId, selectedDate]);
 
-  // const {
-  //   header: reservationInfoHd,
-  //   body: reservationInfoBd,
-  //   refetch: avilable,
-  //   error,
-  //   loading,
-  // } = useApi("/api/reservation/info", {
-  //   method: "get",
-  //   params: {
-  //     restaurantNo: restaurantNo,
-  //   },
-  // });
-
-  // const {
-  //   header: avilableTimeHd,
-  //   body: avilableTimeBd,
-  //   refetch: avilableTime,
-  // } = useApi("/api/reservation", {
-  //   method: "get",
-  //   params: {
-  //     restaurantNo: restaurantNo,
-  //     reserveDay: selectedDate.toISOString().slice(0, 10),
-  //   },
-  // });
-
   const handleSubmit = () => {
     axios
       .post("/api/reservation", {
