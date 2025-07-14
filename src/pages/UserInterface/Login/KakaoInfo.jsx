@@ -20,7 +20,7 @@ const KakaoInfo = () => {
     header,
     body:refreshBody,
     refetch: refreshApi
-  } = useApi("/api/auth/refresh", { method: "post" });
+  } = useApi("/api/auth/refresh", { method: "post", headers: { Authorization: `Bearer ${sessionStorage.getItem("refreshToken")}`} });
   const {
     header: nickNameHeader,
     refetch: checkNickName,
