@@ -9,6 +9,7 @@ const ChatRoomDetail = ({ room }) => {
   const messagesRef = useRef(null);
   const { auth } = useContext(AuthContext);
   const accessToken = auth?.tokens?.accessToken;
+  const socket = window.ENV?.SOCKET_URL || "ws://localhost:8080";
 
   useEffect(() => {
     if (room) {
@@ -20,7 +21,7 @@ const ChatRoomDetail = ({ room }) => {
   }, [room]);
 
   const socketUrl = room.roomNo
-    ? `ws://localhost:8080/ws/chat/${room.roomNo}?token=${accessToken}`
+    ? `${socket}/ws/chat/${room.roomNo}?token=${accessToken}`
     : null;
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
