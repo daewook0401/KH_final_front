@@ -37,8 +37,6 @@ export const AuthProvider = ({ children }) => {
               sessionStorage.getItem("socialLoginState"),
               sessionStorage.getItem("longTimeAuth")
             );
-          } else {
-            logout();
           }
         })
         .catch((err) => {
