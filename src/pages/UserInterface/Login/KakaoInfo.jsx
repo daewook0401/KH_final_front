@@ -111,8 +111,8 @@ const KakaoInfo = () => {
   };
   if (refreshBody !== null && refreshBody.items.loginInfo.isModify === "Y"){
     login(
-      res.data.body.items.loginInfo,
-      res.data.body.items.tokens,
+      refreshBody.items.loginInfo,
+      refreshBody.items.tokens,
       true,
       false
     );
