@@ -11,7 +11,7 @@ export default function PopupCallback() {
     const refreshToken = url.searchParams.get('refreshToken')
     sessionStorage.setItem('refreshToken', refreshToken);
     login(null, null, true, true, false);
-    navigate("/test");
+    navigate("/kakao-info");
   }, [search]);
 
   return <p>로그인 처리 중...</p>;
