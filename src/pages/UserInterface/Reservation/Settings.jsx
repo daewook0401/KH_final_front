@@ -32,7 +32,7 @@ const Settings = ({
     }))
   );
 
-  const [dayOfWeek, setDayOfWeek] = useState([
+  const [dayOfWeek] = useState([
     "Monday",
     "Tuesday",
     "Wednesday",
@@ -50,9 +50,7 @@ const Settings = ({
     let hour = Number(hStr);
     const minute = Number(mStr);
     const d = new Date(2000, 0, 1);
-    if (hour >= 24) {
-      hour = hour % 24;
-    }
+    if (hour >= 24) hour = hour % 24;
     d.setHours(hour, minute, 0, 0);
     return d;
   };
@@ -90,42 +88,37 @@ const Settings = ({
   const updateTime = (time, dayIdx, type) => {
     setReservationTimeInfo((prev) =>
       prev.map((info, idx) =>
-        idx === dayIdx
-          ? {
-              ...info,
-              [type]: toString(info, time, type),
-            }
-          : info
+        idx === dayIdx ? { ...info, [type]: toString(info, time, type) } : info
       )
     );
   };
 
   const handleAddTime = (day) => {
-    reservationTimeInfo[day].reservationStartTime === "" &&
-    reservationTimeInfo[day].reservationEndTime === ""
-      ? setReservationTimeInfo((prev) =>
-          prev.map((info, index) =>
-            index === day
-              ? {
-                  ...info,
-                  reservationStartTime: "09:00",
-                  reservationEndTime: "18:00",
-                }
-              : info
-          )
+    if (
+      reservationTimeInfo[day].reservationStartTime === "" &&
+      reservationTimeInfo[day].reservationEndTime === ""
+    ) {
+      setReservationTimeInfo((prev) =>
+        prev.map((info, index) =>
+          index === day
+            ? {
+                ...info,
+                reservationStartTime: "09:00",
+                reservationEndTime: "18:00",
+              }
+            : info
         )
-      : alert("예약 가능한 타임이 이미 설정되어 있습니다.");
+      );
+    } else {
+      alert("예약 가능한 타임이 이미 설정되어 있습니다.");
+    }
   };
 
   const handleClearTime = (day) => {
     setReservationTimeInfo((prev) =>
       prev.map((info, index) =>
         index === day
-          ? {
-              ...info,
-              reservationStartTime: "",
-              reservationEndTime: "",
-            }
+          ? { ...info, reservationStartTime: "", reservationEndTime: "" }
           : info
       )
     );
@@ -138,10 +131,7 @@ const Settings = ({
       weekDay: dayOfWeek[i],
     }));
     refetch({
-      data: {
-        reservation: update,
-        settingInfo: settingInfo,
-      },
+      data: { reservation: update, settingInfo },
     })
       .then(() => {
         alert("예약설정이 등록되었습니다!");
@@ -155,214 +145,199 @@ const Settings = ({
   };
 
   return (
-    <>
-      <div className="fixed top-0 left-0 w-screen h-screen bg-black/50 z-[1000] flex items-center justify-center">
-        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-[1000px] max-h-[90vh] flex flex-col">
-          <button
-            onClick={() => setOpenReservationSetting(false)}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-          >
-            <CloseRoundedIcon style={{ fontSize: "32px" }} />
-          </button>
+    <div className="fixed inset-0 bg-black/50 z-[1000] flex justify-center items-center">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[950px] max-h-[95vh] flex flex-col overflow-hidden">
+        <button
+          onClick={() => setOpenReservationSetting(false)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+        >
+          <CloseRoundedIcon style={{ fontSize: "32px" }} />
+        </button>
 
-          <div className="w-full text-center py-6 px-8">
-            <h2 className="text-2xl font-extrabold text-[#1e2b47] relative inline-block">
-              예약설정
-              <span className="block w-full h-px bg-[#1e2b47] mt-2"></span>
-            </h2>
-          </div>
+        <div className="px-8 py-6 border-b">
+          <h2 className="text-2xl font-bold text-[#1e2b47] text-center">
+            예약설정
+          </h2>
+        </div>
 
-          <div className="px-8 flex-1 overflow-y-auto">
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* 왼쪽 영역 */}
-              <div className="flex-1 flex flex-col gap-6">
-                <div>
-                  <div className="flex items-center text-lg font-bold mb-3 border-b pb-2 border-gray-300">
-                    <FormatListBulletedAddIcon />
-                    <span className="ml-2">기본 예약 조건</span>
-                  </div>
+        <div className="p-8 flex-1 overflow-y-auto bg-gray-50">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* 왼쪽 */}
+            <div className="flex-1 bg-white rounded-xl shadow p-6 space-y-5">
+              <div>
+                <div className="flex items-center text-lg font-semibold mb-3 border-b pb-2">
+                  <FormatListBulletedAddIcon />
+                  <span className="ml-2">기본 예약 조건</span>
+                </div>
 
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700">
-                          최소인원
-                        </label>
-                        <input
-                          type="number"
-                          value={settingInfo.minNum}
-                          onChange={(e) =>
-                            setSettingInfo((prev) => ({
-                              ...prev,
-                              minNum: e.target.value,
-                            }))
-                          }
-                          className="w-full border rounded px-2 py-1 text-center focus:outline-none focus:border-blue-600"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700">
-                          최대인원
-                        </label>
-                        <input
-                          type="number"
-                          value={settingInfo.maxNum}
-                          onChange={(e) =>
-                            setSettingInfo((prev) => ({
-                              ...prev,
-                              maxNum: e.target.value,
-                            }))
-                          }
-                          className="w-full border rounded px-2 py-1 text-center focus:outline-none focus:border-blue-600"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        예약 간격
-                      </label>
-                      <select
-                        value={settingInfo.interval}
-                        onChange={(e) =>
-                          setSettingInfo((prev) => ({
-                            ...prev,
-                            interval: e.target.value,
-                          }))
-                        }
-                        className="w-1/2 border rounded px-2 py-1 mt-1 focus:outline-none focus:border-blue-600"
-                      >
-                        <option value="30">30분</option>
-                        <option value="60">60분</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        한 타임당 받을 인원수
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-600">
+                        최소인원
                       </label>
                       <input
                         type="number"
-                        value={settingInfo.maxTeamNum}
+                        value={settingInfo.minNum}
                         onChange={(e) =>
                           setSettingInfo((prev) => ({
                             ...prev,
-                            maxTeamNum: e.target.value,
+                            minNum: e.target.value,
                           }))
                         }
-                        className="w-1/2 border rounded px-2 py-1 text-center focus:outline-none focus:border-blue-600"
+                        className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-600">
+                        최대인원
+                      </label>
+                      <input
+                        type="number"
+                        value={settingInfo.maxNum}
+                        onChange={(e) =>
+                          setSettingInfo((prev) => ({
+                            ...prev,
+                            maxNum: e.target.value,
+                          }))
+                        }
+                        className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
                       />
                     </div>
                   </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center text-lg font-bold mb-3 border-b pb-2 border-gray-300">
-                    <InfoIcon />
-                    <span className="ml-2">예약 관련 설명</span>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      예약 간격
+                    </label>
+                    <select
+                      value={settingInfo.interval}
+                      onChange={(e) =>
+                        setSettingInfo((prev) => ({
+                          ...prev,
+                          interval: e.target.value,
+                        }))
+                      }
+                      className="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring focus:ring-blue-200"
+                    >
+                      <option value="30">30분</option>
+                      <option value="60">60분</option>
+                    </select>
                   </div>
-                  <textarea
-                    value={settingInfo.description}
-                    onChange={(e) =>
-                      setSettingInfo((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    className="w-full border rounded px-2 py-2 h-28 resize-none focus:outline-none focus:border-blue-600"
-                  ></textarea>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      한 타임당 받을 인원수
+                    </label>
+                    <input
+                      type="number"
+                      value={settingInfo.maxTeamNum}
+                      onChange={(e) =>
+                        setSettingInfo((prev) => ({
+                          ...prev,
+                          maxTeamNum: e.target.value,
+                        }))
+                      }
+                      className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* 오른쪽 영역 */}
-              <div className="flex-1">
-                <div className="flex items-center justify-center text-lg font-bold mb-3 border-b pb-2 border-gray-300">
-                  <AccessTimeIcon />
-                  <span className="ml-2">요일별 예약 가능한 시간</span>
+              <div>
+                <div className="flex items-center text-lg font-semibold mb-3 border-b pb-2">
+                  <InfoIcon />
+                  <span className="ml-2">예약 관련 설명</span>
                 </div>
-
-                {reservationTimeInfo.map((info, index) => (
-                  <div className="flex items-center gap-2 py-1 min-h-[44px]">
-                    <div className="w-[90px] font-medium text-sm text-left">
-                      {dayOfWeek[index]}
-                    </div>
-                    <AddCircleOutlineIcon
-                      onClick={() => handleAddTime(index)}
-                      style={{
-                        cursor: "pointer",
-                        fontSize: "20px",
-                        color: "#1e2b47",
-                      }}
-                    />
-                    {info.reservationStartTime && info.reservationEndTime && (
-                      <div className="flex items-center gap-2 ml-2">
-                        <div>
-                          <DatePicker
-                            selected={
-                              info.reservationStartTime
-                                ? toDate(info.reservationStartTime)
-                                : null
-                            }
-                            onChange={(time) =>
-                              handleTime(time, index, "reservationStartTime")
-                            }
-                            showTimeSelect
-                            showTimeSelectOnly
-                            timeIntervals={10}
-                            dateFormat="HH:mm"
-                            locale="ko"
-                            customInput={
-                              <input className="w-16 border rounded px-1 py-1 text-center cursor-pointer hover:border-blue-600" />
-                            }
-                          />
-                        </div>
-                        <span className="text-sm font-medium">~</span>
-                        <div>
-                          <DatePicker
-                            selected={
-                              info.reservationEndTime
-                                ? toDate(info.reservationEndTime)
-                                : null
-                            }
-                            onChange={(time) =>
-                              handleTime(time, index, "reservationEndTime")
-                            }
-                            showTimeSelect
-                            showTimeSelectOnly
-                            timeIntervals={10}
-                            dateFormat="HH:mm"
-                            locale="ko"
-                            customInput={
-                              <input className="w-16 border rounded px-1 py-1 text-center cursor-pointer hover:border-blue-600" />
-                            }
-                          />
-                        </div>
-                        <ClearIcon
-                          onClick={() => handleClearTime(index)}
-                          style={{
-                            cursor: "pointer",
-                            fontSize: "20px",
-                            color: "#1e2b47",
-                            marginLeft: "5px",
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                <textarea
+                  value={settingInfo.description}
+                  onChange={(e) =>
+                    setSettingInfo((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  className="w-full border rounded-lg px-3 py-3 h-28 resize-none focus:outline-none focus:ring focus:ring-blue-200"
+                  placeholder="설명을 입력하세요..."
+                ></textarea>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end px-8 py-4">
-            <button
-              onClick={handleSubmit}
-              className="bg-blue-700 text-white rounded px-4 py-2 hover:bg-blue-800 transition"
-            >
-              등록하기
-            </button>
+            {/* 오른쪽 */}
+            <div className="flex-1 bg-white rounded-xl shadow p-6">
+              <div className="flex items-center text-lg font-semibold mb-4 border-b pb-2">
+                <AccessTimeIcon />
+                <span className="ml-2">요일별 예약 시간</span>
+              </div>
+
+              {reservationTimeInfo.map((info, index) => (
+                <div key={index} className="flex items-center gap-2 py-2">
+                  <div className="w-[80px] font-medium text-sm">
+                    {dayOfWeek[index]}
+                  </div>
+                  <AddCircleOutlineIcon
+                    onClick={() => handleAddTime(index)}
+                    className="cursor-pointer text-orange-600 hover:text-orange-800 transition"
+                  />
+                  {info.reservationStartTime && info.reservationEndTime && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <DatePicker
+                        selected={
+                          info.reservationStartTime
+                            ? toDate(info.reservationStartTime)
+                            : null
+                        }
+                        onChange={(time) =>
+                          handleTime(time, index, "reservationStartTime")
+                        }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={10}
+                        dateFormat="HH:mm"
+                        locale="ko"
+                        customInput={
+                          <input className="w-16 border rounded-md px-1 py-1 text-center cursor-pointer focus:outline-none hover:border-blue-500" />
+                        }
+                      />
+                      <span className="text-sm font-medium">~</span>
+                      <DatePicker
+                        selected={
+                          info.reservationEndTime
+                            ? toDate(info.reservationEndTime)
+                            : null
+                        }
+                        onChange={(time) =>
+                          handleTime(time, index, "reservationEndTime")
+                        }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={10}
+                        dateFormat="HH:mm"
+                        locale="ko"
+                        customInput={
+                          <input className="w-16 border rounded-md px-1 py-1 text-center cursor-pointer focus:outline-none hover:border-blue-500" />
+                        }
+                      />
+                      <ClearIcon
+                        onClick={() => handleClearTime(index)}
+                        className="cursor-pointer text-gray-500 hover:text-red-500 transition ml-1"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        <div className="border-t bg-white p-4 flex justify-end">
+          <button
+            onClick={handleSubmit}
+            className="bg-orange-500 text-white px-6 py-2 rounded-full font-medium hover:bg-orange-600 transition shadow"
+          >
+            등록하기
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
