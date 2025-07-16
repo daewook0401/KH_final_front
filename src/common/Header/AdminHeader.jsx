@@ -10,7 +10,7 @@ const AdminHeader = () => {
       <div className="flex items-center space-x-8">
         <img
           src={logoImage}
-          onClick={() => navigate("/admin")}
+          onClick={() => navigate("/admin/users")}
           alt="로고"
           className="cursor-pointer h-14 w-14"
         />

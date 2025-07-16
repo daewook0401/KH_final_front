@@ -12,7 +12,7 @@ const Header = () => {
     auth.isAuthenticated
       ? auth.loginInfo.memberRole !== "ROLE_ADMIN"
         ? navigate("/mypage")
-        : navigate("/admin/main")
+        : navigate("/admin/users")
       : navigate("/login");
   const handleLogoutClick = () =>
     auth.isAuthenticated ? logout() : navigate("/sign-up");
