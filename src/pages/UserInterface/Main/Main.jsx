@@ -33,7 +33,7 @@ const CategorySection = ({ title, restaurants, loading, error }) => {
     >
       <h2 className="flex items-center justify-between mb-6">
         <span className="text-2xl font-semibold text-gray-800">{title}</span>
-        <span className="text-sm font-medium text-[#ff7a3c]">추천 맛집(자동화 배포완)</span>
+        <span className="text-sm font-medium text-[#ff7a3c]">추천 맛집</span>
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {restaurants.map(({ restaurant_no, name, imageUrl }) => (

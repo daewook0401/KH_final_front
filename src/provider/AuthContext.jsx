@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    if (!sessionStorage.getItem("accessToken")){
+    if (sessionStorage.getItem("accessToken")){
       axios
       .delete("/api/auth/logout", {
         headers: {
