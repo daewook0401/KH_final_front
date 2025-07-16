@@ -11,11 +11,8 @@ import Login from "./pages/UserInterface/Login/Login";
 import SignUp from "./pages/UserInterface/Login/SignUp";
 import InsertReviewPage from "./pages/UserInterface/Review/InsertReviewPage";
 import Operatinghours from "./pages/UserInterface/Operatinghours/Operatinghours";
-import Test from "./pages/UserInterface/Login/test";
-
 import "./api/AxiosInterCeptor";
 import PopupCallback from "./pages/UserInterface/Login/PopupCallback";
-import AdminChatting from "./pages/AdminInterface/AdminChatting/AdminChatting";
 import AdminRoute from "./common/AdminRoute/AdminRoute";
 import AdminMain from "./pages/AdminInterface/Main/AdminMain";
 import UserLayout from "./common/Layout/UserLayout";
@@ -37,6 +34,7 @@ import SearchResultsPage from "./pages/UserInterface/Restaurant/SearchResultsPag
 import FindingId from "./pages/UserInterface/Login/FindingId";
 import FindingPw from "./pages/UserInterface/Login/FindingPw";
 import MemberDelete from "./pages/UserInterface/MyPage/MemberDelete";
+import KakaoInfo from "./pages/UserInterface/Login/KakaoInfo";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -61,13 +59,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
             <Route path="/sign-up" element={<SignUp />} />
-
-            <Route path="/test" element={<Test />} />
-
-            <Route path="/login" element={<Login />} />
-            <Route path="/sign-up" element={<SignUp />} />
             <Route path="/social-info" element={<SocialInfo />} />
-            <Route path="/test" element={<Test />} />
+            <Route path="/kakao-info" element={<KakaoInfo />} />
             <Route path="mypage" element={<MyPageLayout />}>
               <Route path="profile" element={<ProfileCard />} />
               <Route path="reservations" element={<ReservationList />} />
