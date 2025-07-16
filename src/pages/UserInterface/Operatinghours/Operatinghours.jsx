@@ -303,7 +303,7 @@ const Operatinghours = ({
         <div className="w-full flex justify-center items-center h-[20%]">
           <button
             onClick={handleSubmit}
-            className="bg-[#f2b789] text-white border-none rounded-full px-6 py-3 text-[16px] font-semibold cursor-pointer transition hover:bg-[#003f99] shadow-md hover:shadow-lg"
+            className="bg-[#de792b] text-white border-none rounded-full px-6 py-3 text-[16px] font-semibold cursor-pointer transition hover:bg-[#c48123] shadow-md hover:shadow-lg"
           >
             등록하기
           </button>
