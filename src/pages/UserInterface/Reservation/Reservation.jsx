@@ -66,7 +66,9 @@ const Reservation = ({ setOpenReservation, restaurantId }) => {
         alert("예약이 등록되었습니다!");
         setOpenReservation(false);
       })
-      .catch(console.error);
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const dateHandler = (date) => {
