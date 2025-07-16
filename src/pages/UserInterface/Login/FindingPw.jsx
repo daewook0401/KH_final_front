@@ -12,21 +12,25 @@ const fadeIn = {
 
 const FindingPw = () => {
   const navigate = useNavigate();
-  const [memberId, setMemberId] = useState("");
-  const [email, setEmail]     = useState("");
+  const [formData, setFormData] = useState({ memberId: "", memberEmail: "" });
   const [message, setMessage] = useState(null);
   const { refetch: apiReset } = useApi(
     "/api/email/pw-verify",
-    { method: "post", data: { memberId:memberId, memberEmail:email } },
+    { method: "post", data: formData },
     false
   );
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const { header } = await apiReset();
       alert("임시 비밀번호 발급 성공");
-      navigate("/")
+      navigate("/");
     } catch {
       setMessage("요청 중 오류가 발생했습니다.");
     }
@@ -54,8 +58,9 @@ const FindingPw = () => {
                 아이디
               </label>
               <input
-                value={memberId}
-                onChange={(e) => setMemberId(e.target.value)}
+                name="memberId"
+                value={formData.memberId}
+                onChange={handleChange}
                 required
                 className="w-full px-4 py-2 mt-1 border-2 border-gray-300 rounded-md focus:outline-none focus:border-[#ff7a3c] transition-colors"
                 placeholder="아이디 입력"
@@ -66,9 +71,10 @@ const FindingPw = () => {
                 가입 시 등록한 이메일
               </label>
               <input
+                name="memberEmail"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.memberEmail}
+                onChange={handleChange}
                 required
                 className="w-full px-4 py-2 mt-1 border-2 border-gray-300 rounded-md focus:outline-none focus:border-[#ff7a3c] transition-colors"
                 placeholder="you@example.com"

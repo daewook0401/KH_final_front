@@ -16,11 +16,9 @@ const MyRestaurant = () => {
     axios
       .get("/api/settings/restaurant")
       .then((res) => {
-        console.log("왜안찍힘??", res);
         setMyRestaurant(res.data.body.items);
       })
       .catch((err) => {
-        console.log(err);
       });
   }, []);
 
@@ -40,12 +38,10 @@ const MyRestaurant = () => {
         params: { restaurantNo: myRestaurant.restaurantNo },
       })
       .then((res) => {
-        console.log(res);
         alert("운영시간 삭제되었습니다!");
         refetchOperating();
       })
       .catch((err) => {
-        console.log(err);
       });
   };
 
@@ -55,13 +51,11 @@ const MyRestaurant = () => {
         params: { restaurantNo: myRestaurant.restaurantNo },
       })
       .then((res) => {
-        console.log(res);
         alert("예약설정 삭제되었습니다!");
         refetchReservation();
         refetchOperating();
       })
       .catch((err) => {
-        console.log(err);
       });
   };
 
@@ -72,12 +66,6 @@ const MyRestaurant = () => {
     setOpenReservationSetting(true);
   };
 
-  console.log(
-    "운영시간정보 :",
-    operatingInfoBd,
-    "예약설정정보",
-    reservationSettingBd
-  );
   const weekInfo = [
     { key: "Monday", label: "월" },
     { key: "Tuesday", label: "화" },

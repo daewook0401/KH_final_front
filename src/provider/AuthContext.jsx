@@ -99,7 +99,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    axios
+    if (sessionStorage.getItem("accessToken")){
+      axios
       .delete("/api/auth/logout", {
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
@@ -117,23 +118,22 @@ export const AuthProvider = ({ children }) => {
       .catch((err) => {
         alert(err);
       })
-      .finally(() => {
-        sessionStorage.clear();
-        setAuth({
-          loginInfo: null,
-          tokens: null,
-          isAuthenticated: false,
-          socialLoginState: false,
-          longTimeAuth: false,
-        });
-        sessionStorage.removeItem("loginInfo");
-        sessionStorage.removeItem("refreshToken");
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.removeItem("isAuthenticated");
-        sessionStorage.removeItem("socialLoginState");
-        sessionStorage.removeItem("longTimeAuth");
-        navigate("/");
-      });
+    }
+    sessionStorage.clear();
+    setAuth({
+      loginInfo: null,
+      tokens: null,
+      isAuthenticated: false,
+      socialLoginState: false,
+      longTimeAuth: false,
+    });
+    sessionStorage.removeItem("loginInfo");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("isAuthenticated");
+    sessionStorage.removeItem("socialLoginState");
+    sessionStorage.removeItem("longTimeAuth");
+    navigate("/");
   };
   if (!ready) {
     return <div>로딩 중</div>;

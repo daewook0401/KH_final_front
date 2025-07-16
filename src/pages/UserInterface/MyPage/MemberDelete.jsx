@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import { useContext, useState } from "react";
 import useApi from "../../../hooks/useApi";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../../provider/AuthContext";
 
-const PasswordConfirmModal = () => {
+const MemberDelete = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
-  const {header:passwordHeader, body, error, loading, refetch: confirmApi} = useApi('/api/auth/password-confirm', { method: 'post' },false);
+  const { logout } = useContext(AuthContext);
+  const {header:passwordHeader, body, error, loading, refetch: confirmApi} = useApi('/api/member/delete', { method: 'delete' },false);
   const handleSubmit = () => {
     // TODO: 서버에 비밀번호 검증 요청
     confirmApi({
@@ -13,7 +15,9 @@ const PasswordConfirmModal = () => {
     }).then(res => {
       if (res.header.code[0] === 'S'){
         sessionStorage.setItem("passwordConfirm", "true");
-        navigate("/edit-profile");
+        alert("회원 탈퇴에 성공하였습니다. 메인페이지로 이동합니다.");
+        logout();
+        navigate("/");
       } else {
         sessionStorage.setItem("passwordConfirm", "false");
         alert("비밀번호 인증 실패");
@@ -60,5 +64,4 @@ const PasswordConfirmModal = () => {
     </>
   );
 };
-
-export default PasswordConfirmModal;
+export default MemberDelete;

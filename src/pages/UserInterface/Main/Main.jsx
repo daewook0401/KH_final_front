@@ -67,9 +67,6 @@ const CategoryRestaurants = ({ categoryName }) => {
   const { body, loading, error } = useApi(
     `/api/restaurants/category/${categoryName}`
   );
-  useEffect(() => {
-    if (body) console.log(`[${categoryName}] 응답:`, body);
-  }, [body, categoryName]);
   return (
     <CategorySection
       title={categoryName}

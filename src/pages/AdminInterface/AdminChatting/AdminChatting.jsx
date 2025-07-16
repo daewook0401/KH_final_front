@@ -13,7 +13,6 @@ const AdminChatPage = () => {
     axios
       .get(`/api/chatting/admin/list`)
       .then((res) => {
-        console.log(res.data.body.items);
         setRooms(res.data.body.items); // 예: [{roomNo: "1", userName: "홍길동", lastMessage: "..."}]
       })
       .catch((err) => console.error("채팅방 목록 불러오기 실패", err));

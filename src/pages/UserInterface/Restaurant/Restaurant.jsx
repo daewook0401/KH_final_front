@@ -232,7 +232,8 @@ const Restaurant = () => {
                   {details.restaurantName}
                 </h1>
                 <div className="flex gap-2">
-                  {!isStoreOwner &&
+                  {auth.isAuthenticated &&
+                    !isStoreOwner &&
                     operatingInfoBd &&
                     (reservationSettingBd?.items?.reservation || []).length >
                       0 &&

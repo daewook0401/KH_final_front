@@ -5,7 +5,10 @@ import Header from "../../../common/Header/Header";
 import useApi from "../../../hooks/useApi";
 import { idRegex, pwRegex } from "../../../components/Regex";
 import { AuthContext } from "../../../provider/AuthContext";
-
+import {
+  CustomGoogleLoginForm,
+  CustomKakaoLoginForm,
+} from "../../../components/Button/CustomLoginForm";
 const Login = () => {
   const [formData, setFormData] = useState({ memberId: "", memberPw: "" });
   const [longTimeAuth, setLongTimeAuth] = useState(false);
@@ -22,7 +25,6 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const { memberId, memberPw } = formData;
-    if (!idRegex.test(memberId) || !pwRegex.test(memberPw)) return;
     try {
       const { header, body } = await loginApi({
         withCredentials: true,
@@ -36,7 +38,7 @@ const Login = () => {
         login(body.items.loginInfo, body.items.tokens, false, longTimeAuth);
         navigate("/");
       } else {
-        alert(`로그인 실패: ${header.code}`);
+        alert(`로그인 실패: ${header.message}`);
       }
     } catch {
       alert("로그인 중 오류가 발생했습니다.");
@@ -117,6 +119,11 @@ const Login = () => {
             >
               로그인
             </button>
+                    {/* 소셜 로그인 버튼 추가 */}
+          <div className="flex flex-col space-y-4">
+            <CustomKakaoLoginForm />
+            <CustomGoogleLoginForm />
+          </div>
           </form>
           <div className="flex justify-between text-sm text-gray-500">
             <Link to="/finding-id" className="hover:text-[#ff7a3c] transition-colors cursor-pointer">아이디 찾기</Link>

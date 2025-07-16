@@ -15,11 +15,9 @@ export function CustomGoogleLoginForm() {
   // useGoogleLogin 훅으로 로그인 함수 생성
   const login = useGoogleLogin({
     onSuccess: CredentialResponse => {
-      console.log('구글 로그인 성공 시 정보:', CredentialResponse);
       GoogleApi( {
         data: { code: CredentialResponse.code },
       }).then((res) => {
-        console.log(res);
         const { header:hd , body:bd } = res
         if (hd.code[0] === 'S'){
           if (bd.items.loginInfo.isActive === 'N'){

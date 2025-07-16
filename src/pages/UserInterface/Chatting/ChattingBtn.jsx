@@ -53,18 +53,7 @@ const ChattingBtn = () => {
 
   useEffect(() => {
     if (lastJsonMessage) {
-      setMessages((prev) => {
-        const isDuplicate = prev.some(
-          (msg) =>
-            msg.content === lastJsonMessage.content &&
-            msg.mine === lastJsonMessage.mine
-        );
-        if (!isDuplicate) {
-          return [...prev, lastJsonMessage];
-        } else {
-          return prev;
-        }
-      });
+      setMessages((prev) => [...prev, lastJsonMessage]);
     }
   }, [lastJsonMessage]);
 

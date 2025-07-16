@@ -36,18 +36,7 @@ const ChatRoomDetail = ({ room }) => {
 
   useEffect(() => {
     if (lastJsonMessage) {
-      setMessages((prev) => {
-        const isDuplicate = prev.some(
-          (msg) =>
-            msg.content === lastJsonMessage.content &&
-            msg.createDate === lastJsonMessage.createDate
-        );
-        if (!isDuplicate) {
-          return [...prev, lastJsonMessage];
-        } else {
-          return prev;
-        }
-      });
+      setMessages((prev) => [...prev, lastJsonMessage]);
     }
   }, [lastJsonMessage]);
 

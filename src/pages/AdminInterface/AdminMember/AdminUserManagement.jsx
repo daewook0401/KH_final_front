@@ -32,10 +32,8 @@ const AdminUserManagement = () => {
       isStoreOwner: roleFilter   || "",
       search:       keyword.trim() || "",
     });
-    console.log();
     memberListApi({ url: `/api/member/member-list?${params.toString()}` })
       .then(res => {
-        console.log(res);
         if(res.header.code[0] === 'S'){
           setUsers(res.body.items);
         } else {
