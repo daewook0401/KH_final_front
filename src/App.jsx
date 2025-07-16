@@ -26,6 +26,7 @@ import FavoriteList from "./pages/UserInterface/MyPage/FavoriteList";
 import PasswordConfirmModal from "./pages/UserInterface/MyPage/PasswordConfirmModal";
 import SocialInfo from "./pages/UserInterface/Login/SocialInfo";
 import AdminReservation from "./pages/AdminInterface/AdminReservation/AdminReservation";
+import AdminReview from "./pages/AdminInterface/AdminReview/AdminReview";
 import MyRestaurant from "./pages/UserInterface/MyPage/MyRestaurant";
 import AdminUserManagement from "./pages/AdminInterface/AdminMember/AdminUserManagement";
 import AdminRestaurantPage from "./pages/AdminInterface/AdminRestaurant/AdminRestaurantPage";
@@ -67,7 +68,6 @@ function App() {
               <Route path="reviews" element={<ReviewList />} />
               <Route path="favorites" element={<FavoriteList />} />
               <Route path="restaurant" element={<MyRestaurant />} />
-              
             </Route>
             <Route
               path="/password-confirm"
@@ -84,13 +84,13 @@ function App() {
               <Route path="chatting" element={<AdminChatPage />} />
               <Route path="restaurants" element={<AdminRestaurantPage />} />
               <Route path="reservations" element={<AdminReservation />} />
+              <Route path="reviews" element={<AdminReview />} />
             </Route>
           </Route>
 
           <Route path="/oauth2/kakao/callback" element={<PopupCallback />} />
           <Route path="/finding-id" element={<FindingId />} />
           <Route path="/finding-password" element={<FindingPw />} />
-
         </Routes>
       </AuthProvider>
     </>
